@@ -17,6 +17,7 @@ button:hover { background-color:#218838; }
 </style>
 
 </head>
+
 <body>
 
 <div class="contenedor">
@@ -33,9 +34,7 @@ Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 <input id="contacto" placeholder="Responsable" data-next="tamano">
 
 <h3>Datos del trabajo</h3>
-
-<input type="number" id="tamano" placeholder="Altura en cm" data-next="material">
-
+<input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
 <select id="material" data-next="texto">
 <option value="">Material</option>
 <option>Chapa galvanizada</option>
@@ -55,9 +54,7 @@ Total: $<span id="total">0</span><br>
 
 <div id="resultado"></div>
 
-<button onclick="togglePro()">
-Estimación de material (herramienta técnica)
-</button>
+<button onclick="togglePro()">Estimación de material (herramienta técnica)</button>
 
 <div id="moduloPro">
 
@@ -93,13 +90,12 @@ Estimación de material (herramienta técnica)
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-
 const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
 
 const cap = s => s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
 
 document.querySelectorAll("input,select").forEach(el=>{
-  el.addEventListener("keydown",e=>{
+  el.addEventListener("keydown", e=>{
     if(e.key==="Enter"){
       e.preventDefault();
       const next = el.getAttribute("data-next");
@@ -121,7 +117,7 @@ contacto.oninput = e=>{
 };
 
 tamano.oninput = e=>{
-  state.tamano = e.target.value;
+  state.tamano = parseFloat(e.target.value) || 0;
   update();
 };
 
@@ -138,46 +134,29 @@ texto.oninput = e=>{
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
+function precioPorCm(){
+  const h = state.tamano;
+  if(h >= 20 && h <= 30) return 1200;
+  if(h >= 31 && h <= 50) return 1100;
+  if(h >= 51 && h <= 90) return 1200;
+  return 0;
+}
+
 function precioBase(){
-  const altura = parseFloat(state.tamano);
-  if(isNaN(altura) || altura < 1) return 0;
-
-  let precio = 0;
-
-  if (altura >= 20 && altura <= 30) {
-    precio = 70000 + ((altura - 20) / 10) * (75000 - 70000);
-  } else if (altura > 30 && altura <= 50) {
-    precio = 60000 + ((altura - 30) / 20) * (65000 - 60000);
-  } else if (altura > 50 && altura <= 80) {
-    precio = 68000 + ((altura - 50) / 30) * (72000 - 68000);
-  } else if (altura > 80) {
-    precio = 72000 + ((altura - 80) / 10) * (72000*0.05);
-  } else if (altura < 20) {
-    precio = 70000 * (altura / 20);
-  }
-
-  // Preparación de archivo obligatoria
-  precio += 2000;
-
-  // Material extra
-  if(state.material==="Acero inoxidable") precio += 10000;
-
-  return Math.round(precio);
+  const p = precioPorCm() * state.tamano; // precio por letra = altura × precio/cm
+  return p;
 }
 
 function update(){
   const c = letras();
   const p = precioBase();
-  const t = c * p;
-
+  const t = (p + 2000) * c; // sumamos preparación de archivo
   cant.innerText = c;
-  precioLetraOut.innerText = p;
+  precioLetraOut.innerText = p + 2000;
   total.innerText = t;
 }
 
-function ok(){
-  return state.empresa && state.contacto && state.tamano && state.material && state.texto;
-}
+function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto; }
 
 function generar(){
   update();
@@ -196,7 +175,6 @@ function generar(){
   font-family:Arial;
   color:#111;
 ">
-
   <div style="text-align:center;margin-bottom:20px;">
     <img src="logo.png" style="width:110px;margin-bottom:10px;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
@@ -220,7 +198,7 @@ function generar(){
 
   <div style="text-align:right;">
     <p>Cantidad letras: <b>${letras()}</b></p>
-    <p>Precio por letra: <b>$${precioBase()}</b></p>
+    <p>Precio por letra: <b>$${precioBase() + 2000}</b></p>
   </div>
 
   <div style="
@@ -238,14 +216,12 @@ function generar(){
     Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
   </p>
 
-</div>
-  `;
+</div>`;
 }
 
 function descargar(){
   const el=document.getElementById("print");
   if(!el) return;
-
   html2canvas(el,{scale:2}).then(canvas=>{
     const a=document.createElement("a");
     a.download="presupuesto.png";
@@ -273,7 +249,6 @@ function calcularPro(){
   const leds = m2 * densidad;
 
   let score = 100;
-
   if(frente==="Chapa") score -= 8;
   if(iluminacion==="Retro") score -= 10;
   if(iluminacion==="Frontal") score -= 5;
@@ -294,7 +269,6 @@ function calcularPro(){
 }
 
 update();
-
 </script>
 
 </body>
