@@ -5,19 +5,57 @@
 <title>Cotizador Corpóreos</title>
 
 <style>
-* { font-family: Arial, sans-serif; }
+* { font-family: Arial, sans-serif; box-sizing: border-box; }
 body { background:#f4f6f8; margin:0; padding:20px; }
-.contenedor { max-width:600px; margin:auto; background:#fff; padding:25px; border-radius:10px; }
-.logo { display:block; margin:0 auto 15px auto; width:120px; }
+
+.contenedor {
+  width: 90%;
+  max-width: 600px;
+  margin:auto;
+  background:#fff;
+  padding:25px;
+  border-radius:10px;
+}
+
+.logo {
+  display:block;
+  margin:0 auto 15px auto;
+  width: 120px;
+  height: auto;
+}
+
 h2,h3 { text-align:center; }
-input,select { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; }
-button { width:100%; padding:12px; margin-top:10px; border:none; border-radius:6px; background-color:#28a745; color:white; cursor:pointer; }
+
+input,select,button {
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  border:1px solid #ccc;
+  border-radius:4px;
+  font-size:1rem;
+}
+
+button {
+  border:none;
+  border-radius:6px;
+  background-color:#28a745;
+  color:white;
+  cursor:pointer;
+  padding:12px;
+}
+
 button:hover { background-color:#218838; }
+
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
+
+@media (max-width: 480px) {
+  .contenedor { padding:15px; }
+  input,select,button { font-size:0.9rem; padding:6px; }
+  h2,h3 { font-size:1.2rem; }
+}
 </style>
 
 </head>
-
 <body>
 
 <div class="contenedor">
@@ -35,6 +73,7 @@ Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 
 <h3>Datos del trabajo</h3>
 <input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
+
 <select id="material" data-next="texto">
 <option value="">Material</option>
 <option>Chapa galvanizada</option>
@@ -44,7 +83,6 @@ Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 <input id="texto" placeholder="Texto del cartel">
 
 <hr>
-
 Cantidad letras: <span id="cant">0</span><br>
 Precio por letra: $<span id="precioLetraOut">0</span><br>
 Total: $<span id="total">0</span><br>
@@ -57,32 +95,14 @@ Total: $<span id="total">0</span><br>
 <button onclick="togglePro()">Estimación de material (herramienta técnica)</button>
 
 <div id="moduloPro">
-
 <h3>Estimación técnica</h3>
-
-<select id="frente">
-<option>Acrílico</option>
-<option>Chapa</option>
-</select>
-
-<select id="base">
-<option>Contraletra</option>
-<option>Patitas</option>
-</select>
-
-<select id="iluminacion">
-<option>Sin luz</option>
-<option>Frontal</option>
-<option>Retro</option>
-</select>
-
+<select id="frente"><option>Acrílico</option><option>Chapa</option></select>
+<select id="base"><option>Contraletra</option><option>Patitas</option></select>
+<select id="iluminacion"><option>Sin luz</option><option>Frontal</option><option>Retro</option></select>
 <input id="desperdicio" type="number" value="15">
 <input id="densidad" type="number" value="35">
-
 <button onclick="calcularPro()">Calcular estimación</button>
-
 <div id="resultadoPro"></div>
-
 </div>
 
 </div>
@@ -95,7 +115,7 @@ const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
 const cap = s => s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
 
 document.querySelectorAll("input,select").forEach(el=>{
-  el.addEventListener("keydown", e=>{
+  el.addEventListener("keydown",e=>{
     if(e.key==="Enter"){
       e.preventDefault();
       const next = el.getAttribute("data-next");
@@ -105,66 +125,56 @@ document.querySelectorAll("input,select").forEach(el=>{
 });
 
 empresa.oninput = e=>{
-  state.empresa = cap(e.target.value);
-  e.target.value = state.empresa;
-  update();
+  state.empresa = cap(e.target.value); e.target.value = state.empresa; update();
 };
-
 contacto.oninput = e=>{
-  state.contacto = cap(e.target.value);
-  e.target.value = state.contacto;
-  update();
+  state.contacto = cap(e.target.value); e.target.value = state.contacto; update();
 };
-
 tamano.oninput = e=>{
-  state.tamano = parseFloat(e.target.value) || 0;
-  update();
+  state.tamano = parseInt(e.target.value)||0; update();
 };
-
 material.onchange = e=>{
-  state.material = e.target.value;
-  update();
+  state.material = e.target.value; update();
 };
-
 texto.oninput = e=>{
-  state.texto = e.target.value.toUpperCase();
-  e.target.value = state.texto;
-  update();
+  state.texto = e.target.value.toUpperCase(); e.target.value = state.texto; update();
 };
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
 function precioPorCm(){
   const h = state.tamano;
-  if(h >= 20 && h <= 30) return 1200;
-  if(h >= 31 && h <= 50) return 1100;
-  if(h >= 51 && h <= 90) return 1200;
+  if(h >= 20 && h <=30) return 1200;
+  if(h >= 31 && h <=50) return 1100;
+  if(h >= 51 && h <=90) return 1200;
   return 0;
 }
 
 function precioBase(){
-  const p = precioPorCm() * state.tamano; // precio por letra = altura × precio/cm
+  let p = precioPorCm() * state.tamano;
+  if(state.material === "Acero inoxidable") p += 8000; // recargo
+  p += 2000; // preparación de archivo
   return p;
 }
 
 function update(){
   const c = letras();
   const p = precioBase();
-  const t = (p + 2000) * c; // sumamos preparación de archivo
+  const t = c * p;
   cant.innerText = c;
-  precioLetraOut.innerText = p + 2000;
+  precioLetraOut.innerText = p;
   total.innerText = t;
 }
 
-function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto; }
+function ok(){
+  return state.empresa && state.contacto && state.tamano>0 && state.material && state.texto;
+}
 
 function generar(){
   update();
   if(!ok()) return;
-
   const fecha = new Date().toLocaleDateString();
   const id = "P-" + Math.floor(Math.random()*99999);
-
   resultado.innerHTML = `
 <div id="print" style="
   max-width:600px;
@@ -176,31 +186,24 @@ function generar(){
   color:#111;
 ">
   <div style="text-align:center;margin-bottom:20px;">
-    <img src="logo.png" style="width:110px;margin-bottom:10px;">
+    <img src="logo.png" style="width:110px;margin-bottom:10px;height:auto;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
     <p style="font-size:12px;color:#666;">${fecha} | ${id}</p>
   </div>
-
   <hr>
-
   <h3 style="font-size:14px;">Datos del cliente</h3>
   <p><b>Empresa:</b> ${state.empresa}</p>
   <p><b>Responsable:</b> ${state.contacto}</p>
-
   <hr>
-
   <h3 style="font-size:14px;">Características del trabajo</h3>
   <p><b>Altura:</b> ${state.tamano} cm</p>
   <p><b>Material:</b> ${state.material}</p>
   <p><b>Texto:</b> ${state.texto}</p>
-
   <hr>
-
   <div style="text-align:right;">
     <p>Cantidad letras: <b>${letras()}</b></p>
-    <p>Precio por letra: <b>$${precioBase() + 2000}</b></p>
+    <p>Precio por letra: <b>$${precioBase()}</b></p>
   </div>
-
   <div style="
     margin-top:20px;
     padding:15px;
@@ -211,12 +214,11 @@ function generar(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total.innerText}</h1>
   </div>
-
   <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
     Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
   </p>
-
-</div>`;
+</div>
+  `;
 }
 
 function descargar(){
@@ -238,16 +240,12 @@ function togglePro(){
 function calcularPro(){
   const cantidad = letras();
   if(!cantidad) return;
-
   const desperdicio = parseFloat(document.getElementById("desperdicio").value||0)/100;
   const densidad = parseFloat(document.getElementById("densidad").value||0);
-
   const frente = document.getElementById("frente").value;
   const iluminacion = document.getElementById("iluminacion").value;
-
   const m2 = cantidad * 0.1;
   const leds = m2 * densidad;
-
   let score = 100;
   if(frente==="Chapa") score -= 8;
   if(iluminacion==="Retro") score -= 10;
@@ -255,12 +253,9 @@ function calcularPro(){
   if(desperdicio > 0.15) score -= 12;
   if(densidad < 30 || densidad > 40) score -= 15;
   if(cantidad > 50) score -= 8;
-
   if(score > 85) score = 85;
   if(score < 45) score = 45;
-
   let nivel = score >= 80 ? "Alta" : score >= 60 ? "Media" : "Baja";
-
   resultadoPro.innerHTML =
   `m²: ${m2.toFixed(2)}<br>
    LED estimados: ${Math.round(leds)}<br>
