@@ -1,339 +1,182 @@
 ﻿<!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Cotizador Corpóreos</title>
-
+<title>Cotizador Corpóreos Mejorado</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-
-* {
-  box-sizing: border-box;
-  font-family: 'Inter', Arial, sans-serif;
-  margin:0;
-  padding:0;
-}
-
-body {
-  background:#f4f6f8;
-  padding:20px;
-}
-
-.contenedor {
-  max-width:900px;
-  margin:auto;
-  background:#fff;
-  padding:30px;
-  border-radius:12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.logo {
-  display:block;
-  margin:0 auto 25px auto;
-  width:400px; /* logo más grande en PC */
-  max-width:90%;
-  height:auto;
-}
-
-h2,h3 {
-  text-align:center;
-  margin-bottom:15px;
-}
-
-input,select {
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  margin-bottom:15px;
-  border:1px solid #ccc;
-  border-radius:6px;
-  font-size:14px;
-  transition: border-color 0.2s;
-}
-
-input:focus, select:focus {
-  border-color:#28a745;
-  outline:none;
-}
-
-button {
-  width:100%;
-  padding:14px;
-  margin-top:10px;
-  border:none;
-  border-radius:8px;
-  background-color:#28a745;
-  color:white;
-  font-weight:600;
-  cursor:pointer;
-  transition: background 0.2s;
-}
-
-button:hover {
-  background-color:#218838;
-}
-
-#moduloPro {
-  display:none;
-  margin-top:20px;
-  padding:15px;
-  background:#f1f1f1;
-  border-radius:8px;
-}
-
-hr {
-  border:none;
-  border-top:1px solid #eee;
-  margin:25px 0;
-}
-
-#resultado, #resultadoPro {
-  margin-top:20px;
-}
-
-/* Total destacado */
-.total-container {
-  margin-top:25px;
-  padding:20px;
-  background:#f4f6f8;
-  text-align:center;
-  border-radius:10px;
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
-}
-
-.total-container h1 {
-  margin:10px 0;
-  font-size:28px;
-  color:#111;
-}
-
-.total-container p {
-  margin:0;
-  font-size:14px;
-  color:#555;
-}
-
-/* Responsividad */
-@media(max-width:768px){
-  .contenedor {
-    padding:20px;
-  }
-  .logo {
-    width:80%;
-  }
-  .total-container h1 {
-    font-size:24px;
-  }
-}
-
-@media(max-width:480px){
-  .contenedor {
-    padding:15px;
-  }
-  button {
-    padding:12px;
-  }
-  input,select {
-    padding:8px;
-  }
-}
+* { font-family: Arial, sans-serif; box-sizing: border-box; }
+body { background:#f4f6f8; margin:0; padding:20px; }
+.contenedor { max-width:900px; margin:auto; background:#fff; padding:25px; border-radius:10px; }
+.logo { display:block; margin:0 auto 15px auto; width:240px; height:auto; }
+h2,h3 { text-align:center; }
+input,select { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:4px; font-size:14px; transition:0.2s; }
+input:focus, select:focus { border-color:#28a745; outline:none; box-shadow:0 0 5px rgba(40,167,69,0.5); }
+button { width:100%; padding:14px; margin-top:10px; border:none; border-radius:6px; background-color:#28a745; color:white; cursor:pointer; font-size:16px; transition:0.2s; }
+button:hover { background-color:#218838; }
+#moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
+#historial { font-size:13px; color:#333; max-height:300px; overflow:auto; border:1px solid #ccc; padding:10px; border-radius:5px; background:#f9f9f9; }
+.error { border-color:red !important; }
+.alert { color:red; font-size:13px; margin-top:5px; display:none; }
+@media screen and (max-width:600px){ .contenedor { padding:15px; } .logo { width:180px; } input, select, button { font-size:14px; } }
 </style>
 </head>
-
 <body>
-
 <div class="contenedor">
-
-<img src="logo.png" class="logo" alt="Logo">
-
+<img src="logo.png" class="logo">
 <h2>Calculador estimativo de costos</h2>
-<p style="text-align:center;font-size:13px;">
-Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
-</p>
+<p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
 
 <h3>Datos del cliente</h3>
 <input id="empresa" placeholder="Empresa" data-next="contacto">
+<div id="errorEmpresa" class="alert">Completa este campo</div>
 <input id="contacto" placeholder="Responsable" data-next="tamano">
+<div id="errorContacto" class="alert">Completa este campo</div>
 
 <h3>Datos del trabajo</h3>
 <input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
+<div id="errorTamano" class="alert">Altura entre 20 y 90 cm</div>
 
 <select id="material" data-next="texto">
 <option value="">Material</option>
 <option>Chapa galvanizada</option>
 <option>Acero inoxidable</option>
 </select>
+<div id="errorMaterial" class="alert">Selecciona un material</div>
 
 <input id="texto" placeholder="Texto del cartel">
+<div id="errorTexto" class="alert">Completa este campo</div>
 
 <hr>
-
 Cantidad letras: <span id="cant">0</span><br>
 Precio por letra: $<span id="precioLetraOut">0</span><br>
 Total: $<span id="total">0</span><br>
 
-<button onclick="generar()">Generar presupuesto</button>
+<button id="btnGenerar">Generar presupuesto</button>
 <button onclick="descargar()">Descargar presupuesto</button>
 
-<div id="resultado"></div>
+<h3>Historial últimos 10 presupuestos</h3>
+<div id="historial"></div>
 
 <button onclick="togglePro()">Estimación de material (herramienta técnica)</button>
-
 <div id="moduloPro">
-
 <h3>Estimación técnica</h3>
-<select id="frente">
-<option>Acrílico</option>
-<option>Chapa</option>
-</select>
-
-<select id="base">
-<option>Contraletra</option>
-<option>Patitas</option>
-</select>
-
-<select id="iluminacion">
-<option>Sin luz</option>
-<option>Frontal</option>
-<option>Retro</option>
-</select>
-
-<input id="desperdicio" type="number" value="15" placeholder="% Desperdicio">
-<input id="densidad" type="number" value="35" placeholder="Densidad LED">
-
+<select id="frente"><option>Acrílico</option><option>Chapa</option></select>
+<select id="base"><option>Contraletra</option><option>Patitas</option></select>
+<select id="iluminacion"><option>Sin luz</option><option>Frontal</option><option>Retro</option></select>
+<input id="desperdicio" type="number" value="15">
+<input id="densidad" type="number" value="35">
 <button onclick="calcularPro()">Calcular estimación</button>
-
 <div id="resultadoPro"></div>
-
 </div>
-
+<div id="resultado"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
 <script>
-const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
+const GOOGLE_SHEET_URL = "YOUR_GOOGLE_SHEET_URL";
+const state = { empresa:"", contacto:"", tamano:0, material:"", texto:"" };
 const cap = s => s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
 
+function validar(){ 
+  let ok = true;
+  ["empresa","contacto","tamano","material","texto"].forEach(id=>{
+    const el = document.getElementById(id);
+    const err = document.getElementById("error"+id.charAt(0).toUpperCase()+id.slice(1));
+    el.classList.remove("error"); err.style.display="none";
+    if(!el.value || (id=="tamano" && (state.tamano<20 || state.tamano>90))){
+      el.classList.add("error"); err.style.display="block"; ok=false;
+    }
+  });
+  return ok;
+}
+
 document.querySelectorAll("input,select").forEach(el=>{
-  el.addEventListener("keydown",e=>{
-    if(e.key==="Enter"){ e.preventDefault(); const next = el.getAttribute("data-next"); if(next) document.getElementById(next)?.focus(); }
+  el.addEventListener("input",e=>{
+    const id = e.target.id;
+    if(id=="empresa") state.empresa = cap(e.target.value);
+    if(id=="contacto") state.contacto = cap(e.target.value);
+    if(id=="tamano") state.tamano = parseInt(e.target.value)||0;
+    if(id=="material") state.material = e.target.value;
+    if(id=="texto") state.texto = e.target.value.toUpperCase();
+    update();
   });
 });
 
-empresa.oninput = e=>{ state.empresa = cap(e.target.value); e.target.value = state.empresa; update(); };
-contacto.oninput = e=>{ state.contacto = cap(e.target.value); e.target.value = state.contacto; update(); };
-tamano.oninput = e=>{ state.tamano = parseFloat(e.target.value); update(); };
-material.onchange = e=>{ state.material = e.target.value; update(); };
-texto.oninput = e=>{ state.texto = e.target.value.toUpperCase(); e.target.value = state.texto; update(); };
-
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
-
 function precioBase(){
-  let p=0;
-  if(state.tamano>=20 && state.tamano<=30) p=1200;
-  else if(state.tamano>=31 && state.tamano<=50) p=1100;
-  else if(state.tamano>=51 && state.tamano<=90) p=1200;
-
-  if(state.material==="Acero inoxidable") p+=8000;
-  return p;
+  let pcm=0;
+  const h = state.tamano;
+  if(h>=20 && h<=30) pcm=1200;
+  else if(h>=31 && h<=50) pcm=1100;
+  else if(h>=51 && h<=90) pcm=1200;
+  if(state.material==="Acero inoxidable") pcm+=8000;
+  return pcm;
 }
-
 function update(){
-  const c = letras();
-  const p = precioBase();
-  const t = c * p;
-  document.getElementById('cant').innerText = c;
-  document.getElementById('precioLetraOut').innerText = p;
-  document.getElementById('total').innerText = t;
+  const c = letras(); const pcm = precioBase();
+  const t = c * state.tamano * pcm;
+  document.getElementById("cant").innerText = c;
+  document.getElementById("precioLetraOut").innerText = pcm;
+  document.getElementById("total").innerText = t;
 }
 
-function ok(){
-  return state.empresa && state.contacto && state.tamano && state.material && state.texto;
-}
-
-function generar(){
-  update();
-  if(!ok()) return;
+document.getElementById("btnGenerar").onclick=function(){
+  if(!validar()) return;
   const fecha = new Date().toLocaleDateString();
-  const id = "P-" + Math.floor(Math.random()*99999);
+  const id = "P-"+Math.floor(Math.random()*99999);
+  const p = {id, fecha, usuario: state.contacto, empresa: state.empresa, contacto: state.contacto, texto: state.texto, altura: state.tamano, material: state.material, total: parseInt(document.getElementById("total").innerText)};
+  let hist = JSON.parse(localStorage.getItem("historialPresupuestos")||"[]");
+  hist.unshift(p); if(hist.length>10) hist.pop(); localStorage.setItem("historialPresupuestos", JSON.stringify(hist));
+  mostrarHistorial();
+  fetch(GOOGLE_SHEET_URL,{method:"POST",body: JSON.stringify(p)}).catch(err=>console.error(err));
+  mostrarPresupuesto(p);
+};
 
-  document.getElementById('resultado').innerHTML = `
-<div id="print" style="max-width:900px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
+function mostrarPresupuesto(p){
+  document.getElementById("resultado").innerHTML = `<div id="print" style="max-width:800px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111">
   <div style="text-align:center;margin-bottom:20px;">
-    <img src="logo.png" style="width:400px;margin-bottom:10px;">
+    <img src="logo.png" style="width:240px;margin-bottom:10px;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
-    <p style="font-size:12px;color:#666;">${fecha} | ${id}</p>
+    <p style="font-size:12px;color:#666;">${p.fecha} | ${p.id}</p>
   </div>
   <hr>
   <h3 style="font-size:14px;">Datos del cliente</h3>
-  <p><b>Empresa:</b> ${state.empresa}</p>
-  <p><b>Responsable:</b> ${state.contacto}</p>
+  <p><b>Empresa:</b> ${p.empresa}</p>
+  <p><b>Responsable:</b> ${p.contacto}</p>
   <hr>
   <h3 style="font-size:14px;">Características del trabajo</h3>
-  <p><b>Altura:</b> ${state.tamano} cm</p>
-  <p><b>Material:</b> ${state.material}</p>
-  <p><b>Texto:</b> ${state.texto}</p>
+  <p><b>Altura:</b> ${p.altura} cm</p>
+  <p><b>Material:</b> ${p.material}</p>
+  <p><b>Texto:</b> ${p.texto}</p>
   <hr>
   <div style="text-align:right;">
     <p>Cantidad letras: <b>${letras()}</b></p>
     <p>Precio por letra: <b>$${precioBase()}</b></p>
   </div>
-  <div class="total-container">
-    <p>TOTAL ESTIMADO</p>
-    <h1>$${document.getElementById('total').innerText}</h1>
+  <div style="margin-top:20px;padding:15px;background:#f4f6f8;text-align:center;border-radius:8px;">
+    <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
+    <h1 style="margin:5px 0;">$${p.total}</h1>
   </div>
-  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
-    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
-  </p>
-</div>`;
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p></div>`;
+}
+
+function mostrarHistorial(){
+  let hist = JSON.parse(localStorage.getItem("historialPresupuestos")||"[]");
+  document.getElementById("historial").innerHTML = hist.map(p=>`<b>${p.fecha}</b> | ${p.empresa} | ${p.texto} | $${p.total}`).join("<br>");
 }
 
 function descargar(){
   const el=document.getElementById("print");
   if(!el) return;
   html2canvas(el,{scale:2}).then(canvas=>{
-    const a=document.createElement("a");
-    a.download="presupuesto.png";
-    a.href=canvas.toDataURL();
-    a.click();
+    const a=document.createElement("a"); a.download="presupuesto.png"; a.href=canvas.toDataURL(); a.click();
   });
 }
 
-function togglePro(){
-  const m=document.getElementById("moduloPro");
-  m.style.display = m.style.display==="block"?"none":"block";
-}
+function togglePro(){ const m=document.getElementById("moduloPro"); m.style.display = m.style.display==="block"?"none":"block"; }
 
-function calcularPro(){
-  const cantidad = letras();
-  if(!cantidad) return;
-  const desperdicio = parseFloat(document.getElementById("desperdicio").value||0)/100;
-  const densidad = parseFloat(document.getElementById("densidad").value||0);
-  const frente = document.getElementById("frente").value;
-  const iluminacion = document.getElementById("iluminacion").value;
-  const m2 = cantidad * 0.1;
-  const leds = m2 * densidad;
-  let score = 100;
-  if(frente==="Chapa") score -= 8;
-  if(iluminacion==="Retro") score -= 10;
-  if(iluminacion==="Frontal") score -= 5;
-  if(desperdicio > 0.15) score -= 12;
-  if(densidad < 30 || densidad > 40) score -= 15;
-  if(cantidad > 50) score -= 8;
-  if(score > 85) score = 85;
-  if(score < 45) score = 45;
-  let nivel = score >= 80 ? "Alta" : score >= 60 ? "Media" : "Baja";
-  document.getElementById('resultadoPro').innerHTML =
-  `m²: ${m2.toFixed(2)}<br>
-   LED estimados: ${Math.round(leds)}<br>
-   Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br>
-   <b>Confiabilidad: ${nivel} (${score}%)</b>`;
-}
-
+mostrarHistorial();
 update();
 </script>
-
 </body>
 </html>
