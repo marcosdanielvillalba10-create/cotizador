@@ -5,70 +5,18 @@
 <title>Cotizador Corpóreos</title>
 
 <style>
-
-* {
-  font-family: Arial, sans-serif;
-}
-
-body {
-  background:#f4f6f8;
-  margin:0;
-  padding:20px;
-}
-
-.contenedor {
-  max-width:600px;
-  margin:auto;
-  background:#fff;
-  padding:25px;
-  border-radius:10px;
-}
-
-.logo {
-  display:block;
-  margin:0 auto 15px auto;
-  width:120px;
-}
-
-h2,h3 {
-  text-align:center;
-}
-
-input,select {
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-  border:1px solid #ccc;
-  border-radius:4px;
-}
-
-button {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border:none;
-  border-radius:6px;
-  background-color:#28a745;
-  color:white;
-  cursor:pointer;
-}
-
-button:hover {
-  background-color:#218838;
-}
-
-#moduloPro {
-  display:none;
-  margin-top:15px;
-  padding:10px;
-  background:#f1f1f1;
-  border-radius:6px;
-}
-
+* { font-family: Arial, sans-serif; }
+body { background:#f4f6f8; margin:0; padding:20px; }
+.contenedor { max-width:600px; margin:auto; background:#fff; padding:25px; border-radius:10px; }
+.logo { display:block; margin:0 auto 15px auto; width:120px; }
+h2,h3 { text-align:center; }
+input,select { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; }
+button { width:100%; padding:12px; margin-top:10px; border:none; border-radius:6px; background-color:#28a745; color:white; cursor:pointer; }
+button:hover { background-color:#218838; }
+#moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
 </style>
 
 </head>
-
 <body>
 
 <div class="contenedor">
@@ -76,24 +24,17 @@ button:hover {
 <img src="logo.png" class="logo">
 
 <h2>Calculador estimativo de costos</h2>
-
 <p style="text-align:center;font-size:13px;">
 Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 </p>
 
 <h3>Datos del cliente</h3>
-
 <input id="empresa" placeholder="Empresa" data-next="contacto">
 <input id="contacto" placeholder="Responsable" data-next="tamano">
 
 <h3>Datos del trabajo</h3>
 
-<select id="tamano" data-next="material">
-<option value="">Altura</option>
-<option>20 x 40 cm</option>
-<option>40 x 60 cm</option>
-<option>60 x 80 cm</option>
-</select>
+<input type="number" id="tamano" placeholder="Altura en cm" data-next="material">
 
 <select id="material" data-next="texto">
 <option value="">Material</option>
@@ -153,16 +94,9 @@ Estimación de material (herramienta técnica)
 
 <script>
 
-const state = {
-  empresa:"",
-  contacto:"",
-  tamano:"",
-  material:"",
-  texto:""
-};
+const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
 
-const cap = s =>
-  s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
+const cap = s => s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
 
 document.querySelectorAll("input,select").forEach(el=>{
   el.addEventListener("keydown",e=>{
@@ -186,7 +120,7 @@ contacto.oninput = e=>{
   update();
 };
 
-tamano.onchange = e=>{
+tamano.oninput = e=>{
   state.tamano = e.target.value;
   update();
 };
@@ -202,20 +136,33 @@ texto.oninput = e=>{
   update();
 };
 
-function letras(){
-  return (state.texto||"").replace(/\s/g,"").length;
-}
+function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
 function precioBase(){
-  let p=0;
+  const altura = parseFloat(state.tamano);
+  if(isNaN(altura) || altura < 1) return 0;
 
-  if(state.tamano==="20 x 40 cm") p=70000;
-  if(state.tamano==="40 x 60 cm") p=60000;
-  if(state.tamano==="60 x 80 cm") p=70000;
+  let precio = 0;
 
-  if(state.material==="Acero inoxidable") p+=10000;
+  if (altura >= 20 && altura <= 30) {
+    precio = 70000 + ((altura - 20) / 10) * (75000 - 70000);
+  } else if (altura > 30 && altura <= 50) {
+    precio = 60000 + ((altura - 30) / 20) * (65000 - 60000);
+  } else if (altura > 50 && altura <= 80) {
+    precio = 68000 + ((altura - 50) / 30) * (72000 - 68000);
+  } else if (altura > 80) {
+    precio = 72000 + ((altura - 80) / 10) * (72000*0.05);
+  } else if (altura < 20) {
+    precio = 70000 * (altura / 20);
+  }
 
-  return p;
+  // Preparación de archivo obligatoria
+  precio += 2000;
+
+  // Material extra
+  if(state.material==="Acero inoxidable") precio += 10000;
+
+  return Math.round(precio);
 }
 
 function update(){
@@ -229,15 +176,10 @@ function update(){
 }
 
 function ok(){
-  return state.empresa &&
-         state.contacto &&
-         state.tamano &&
-         state.material &&
-         state.texto;
+  return state.empresa && state.contacto && state.tamano && state.material && state.texto;
 }
 
 function generar(){
-
   update();
   if(!ok()) return;
 
@@ -270,7 +212,7 @@ function generar(){
   <hr>
 
   <h3 style="font-size:14px;">Características del trabajo</h3>
-  <p><b>Altura:</b> ${state.tamano}</p>
+  <p><b>Altura:</b> ${state.tamano} cm</p>
   <p><b>Material:</b> ${state.material}</p>
   <p><b>Texto:</b> ${state.texto}</p>
 
@@ -318,7 +260,6 @@ function togglePro(){
 }
 
 function calcularPro(){
-
   const cantidad = letras();
   if(!cantidad) return;
 
@@ -336,7 +277,6 @@ function calcularPro(){
   if(frente==="Chapa") score -= 8;
   if(iluminacion==="Retro") score -= 10;
   if(iluminacion==="Frontal") score -= 5;
-
   if(desperdicio > 0.15) score -= 12;
   if(densidad < 30 || densidad > 40) score -= 15;
   if(cantidad > 50) score -= 8;
