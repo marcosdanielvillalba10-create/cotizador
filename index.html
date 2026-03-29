@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Cotizador Corpóreos</title>
+
+<style>
+
+* {
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background:#f4f6f8;
+  margin:0;
+  padding:20px;
+}
+
+.contenedor {
+  max-width:600px;
+  margin:auto;
+  background:#fff;
+  padding:25px;
+  border-radius:10px;
+}
+
+.logo {
+  display:block;
+  margin:0 auto 15px auto;
+  width:120px;
+}
+
+h2,h3 {
+  text-align:center;
+}
+
+input,select {
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  border:1px solid #ccc;
+  border-radius:4px;
+}
+
+button {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:6px;
+  background-color:#28a745;
+  color:white;
+  cursor:pointer;
+}
+
+button:hover {
+  background-color:#218838;
+}
+
+#moduloPro {
+  display:none;
+  margin-top:15px;
+  padding:10px;
+  background:#f1f1f1;
+  border-radius:6px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<img src="logo.png" class="logo">
+
+<h2>Calculador estimativo de costos</h2>
+
+<p style="text-align:center;font-size:13px;">
+Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
+</p>
+
+<h3>Datos del cliente</h3>
+
+<input id="empresa" placeholder="Empresa" data-next="contacto">
+<input id="contacto" placeholder="Responsable" data-next="tamano">
+
+<h3>Datos del trabajo</h3>
+
+<select id="tamano" data-next="material">
+<option value="">Altura</option>
+<option>20 x 40 cm</option>
+<option>40 x 60 cm</option>
+<option>60 x 80 cm</option>
+</select>
+
+<select id="material" data-next="texto">
+<option value="">Material</option>
+<option>Chapa galvanizada</option>
+<option>Acero inoxidable</option>
+</select>
+
+<input id="texto" placeholder="Texto del cartel">
+
+<hr>
+
+Cantidad letras: <span id="cant">0</span><br>
+Precio por letra: $<span id="precioLetraOut">0</span><br>
+Total: $<span id="total">0</span><br>
+
+<button onclick="generar()">Generar presupuesto</button>
+<button onclick="descargar()">Descargar presupuesto</button>
+
+<div id="resultado"></div>
+
+<button onclick="togglePro()">
+Estimación de material (herramienta técnica)
+</button>
+
+<div id="moduloPro">
+
+<h3>Estimación técnica</h3>
+
+<select id="frente">
+<option>Acrílico</option>
+<option>Chapa</option>
+</select>
+
+<select id="base">
+<option>Contraletra</option>
+<option>Patitas</option>
+</select>
+
+<select id="iluminacion">
+<option>Sin luz</option>
+<option>Frontal</option>
+<option>Retro</option>
+</select>
+
+<input id="desperdicio" type="number" value="15">
+<input id="densidad" type="number" value="35">
+
+<button onclick="calcularPro()">Calcular estimación</button>
+
+<div id="resultadoPro"></div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+
+const state = {
+  empresa:"",
+  contacto:"",
+  tamano:"",
+  material:"",
+  texto:""
+};
+
+const cap = s =>
+  s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
+
+document.querySelectorAll("input,select").forEach(el=>{
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      const next = el.getAttribute("data-next");
+      if(next) document.getElementById(next)?.focus();
+    }
+  });
+});
+
+empresa.oninput = e=>{
+  state.empresa = cap(e.target.value);
+  e.target.value = state.empresa;
+  update();
+};
+
+contacto.oninput = e=>{
+  state.contacto = cap(e.target.value);
+  e.target.value = state.contacto;
+  update();
+};
+
+tamano.onchange = e=>{
+  state.tamano = e.target.value;
+  update();
+};
+
+material.onchange = e=>{
+  state.material = e.target.value;
+  update();
+};
+
+texto.oninput = e=>{
+  state.texto = e.target.value.toUpperCase();
+  e.target.value = state.texto;
+  update();
+};
+
+function letras(){
+  return (state.texto||"").replace(/\s/g,"").length;
+}
+
+function precioBase(){
+  let p=0;
+
+  if(state.tamano==="20 x 40 cm") p=70000;
+  if(state.tamano==="40 x 60 cm") p=60000;
+  if(state.tamano==="60 x 80 cm") p=70000;
+
+  if(state.material==="Acero inoxidable") p+=10000;
+
+  return p;
+}
+
+function update(){
+  const c = letras();
+  const p = precioBase();
+  const t = c * p;
+
+  cant.innerText = c;
+  precioLetraOut.innerText = p;
+  total.innerText = t;
+}
+
+function ok(){
+  return state.empresa &&
+         state.contacto &&
+         state.tamano &&
+         state.material &&
+         state.texto;
+}
+
+function generar(){
+
+  update();
+  if(!ok()) return;
+
+  const fecha = new Date().toLocaleDateString();
+  const id = "P-" + Math.floor(Math.random()*99999);
+
+  resultado.innerHTML = `
+<div id="print" style="
+  max-width:600px;
+  margin:auto;
+  padding:25px;
+  background:#fff;
+  border:1px solid #eee;
+  font-family:Arial;
+  color:#111;
+">
+
+  <div style="text-align:center;margin-bottom:20px;">
+    <img src="logo.png" style="width:110px;margin-bottom:10px;">
+    <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
+    <p style="font-size:12px;color:#666;">${fecha} | ${id}</p>
+  </div>
+
+  <hr>
+
+  <h3 style="font-size:14px;">Datos del cliente</h3>
+  <p><b>Empresa:</b> ${state.empresa}</p>
+  <p><b>Responsable:</b> ${state.contacto}</p>
+
+  <hr>
+
+  <h3 style="font-size:14px;">Características del trabajo</h3>
+  <p><b>Altura:</b> ${state.tamano}</p>
+  <p><b>Material:</b> ${state.material}</p>
+  <p><b>Texto:</b> ${state.texto}</p>
+
+  <hr>
+
+  <div style="text-align:right;">
+    <p>Cantidad letras: <b>${letras()}</b></p>
+    <p>Precio por letra: <b>$${precioBase()}</b></p>
+  </div>
+
+  <div style="
+    margin-top:20px;
+    padding:15px;
+    background:#f4f6f8;
+    text-align:center;
+    border-radius:8px;
+  ">
+    <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
+    <h1 style="margin:5px 0;">$${total.innerText}</h1>
+  </div>
+
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
+  </p>
+
+</div>
+  `;
+}
+
+function descargar(){
+  const el=document.getElementById("print");
+  if(!el) return;
+
+  html2canvas(el,{scale:2}).then(canvas=>{
+    const a=document.createElement("a");
+    a.download="presupuesto.png";
+    a.href=canvas.toDataURL();
+    a.click();
+  });
+}
+
+function togglePro(){
+  const m=document.getElementById("moduloPro");
+  m.style.display = m.style.display==="block"?"none":"block";
+}
+
+function calcularPro(){
+
+  const cantidad = letras();
+  if(!cantidad) return;
+
+  const desperdicio = parseFloat(document.getElementById("desperdicio").value||0)/100;
+  const densidad = parseFloat(document.getElementById("densidad").value||0);
+
+  const frente = document.getElementById("frente").value;
+  const iluminacion = document.getElementById("iluminacion").value;
+
+  const m2 = cantidad * 0.1;
+  const leds = m2 * densidad;
+
+  let score = 100;
+
+  if(frente==="Chapa") score -= 8;
+  if(iluminacion==="Retro") score -= 10;
+  if(iluminacion==="Frontal") score -= 5;
+
+  if(desperdicio > 0.15) score -= 12;
+  if(densidad < 30 || densidad > 40) score -= 15;
+  if(cantidad > 50) score -= 8;
+
+  if(score > 85) score = 85;
+  if(score < 45) score = 45;
+
+  let nivel = score >= 80 ? "Alta" : score >= 60 ? "Media" : "Baja";
+
+  resultadoPro.innerHTML =
+  `m²: ${m2.toFixed(2)}<br>
+   LED estimados: ${Math.round(leds)}<br>
+   Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br>
+   <b>Confiabilidad: ${nivel} (${score}%)</b>`;
+}
+
+update();
+
+</script>
+
+</body>
+</html>
