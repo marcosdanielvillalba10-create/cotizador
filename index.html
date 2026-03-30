@@ -15,15 +15,15 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:500px; overflow-y:auto; } /* altura ajustada */
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:calc(100vh - 40px); overflow-y:auto; } 
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
 #resultado { margin-top:20px; }
-#btnCalcular { margin-top:10px; width:100%; }
+#btnCalcular { margin-top:10px; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
-  #btnCalcular { margin-top:10px; }
+  #btnCalcular { margin-top:5px; }
 }
 </style>
 </head>
@@ -31,69 +31,66 @@ button:hover { background:#218838; }
 
 <div class="contenedor">
 
-  <div class="main">
+<div class="main">
 
-    <img src="logo.png" class="logo">
+<img src="logo.png" class="logo">
 
-    <h2>Calculador estimativo de costos</h2>
-    <p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
+<h2>Calculador estimativo de costos</h2>
+<p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
 
-    <h3>Datos del cliente</h3>
-    <input id="empresa" placeholder="Empresa" data-next="contacto">
-    <input id="contacto" placeholder="Responsable" data-next="tamano">
+<h3>Datos del cliente</h3>
+<input id="empresa" placeholder="Empresa" data-next="contacto">
+<input id="contacto" placeholder="Responsable" data-next="tamano">
 
-    <h3>Datos del trabajo</h3>
-    <input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
+<h3>Datos del trabajo</h3>
+<input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
 
-    <select id="material" data-next="texto">
-      <option value="">Material</option>
-      <option>Chapa galvanizada</option>
-      <option>Acero inoxidable</option>
-    </select>
+<select id="material" data-next="texto">
+<option value="">Material</option>
+<option>Chapa galvanizada</option>
+<option>Acero inoxidable</option>
+</select>
 
-    <input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
+<input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
 
-    <div style="display:flex; gap:10px;">
-      <button id="generarBtn">Generar presupuesto</button>
-      <button onclick="descargar()">Descargar presupuesto</button>
-    </div>
+<div style="display:flex; gap:10px;">
+<button id="generarBtn">Generar presupuesto</button>
+<button onclick="descargar()">Descargar presupuesto</button>
+</div>
 
-    <div id="resultado"></div>
+<div id="resultado"></div>
 
-  </div>
+</div>
 
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div id="historial">
-      <h3>Historial</h3>
-      <div id="hist-items"></div>
-    </div>
-    <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
-    <div id="moduloPro">
-      <h3>Estimación técnica</h3>
-      <select id="frente">
-        <option>Acrílico</option>
-        <option>Chapa</option>
-      </select>
+<div id="historial">
+<h3>Historial</h3>
+<div id="hist-items"></div>
+<button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
+</div>
 
-      <select id="base">
-        <option>Contraletra</option>
-        <option>Patitas</option>
-      </select>
+<div id="moduloPro">
+<h3>Estimación técnica</h3>
+<select id="frente">
+<option>Acrílico</option>
+<option>Chapa</option>
+</select>
 
-      <select id="iluminacion">
-        <option>Sin luz</option>
-        <option>Frontal</option>
-        <option>Retro</option>
-      </select>
+<select id="base">
+<option>Contraletra</option>
+<option>Patitas</option>
+</select>
 
-      <input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
-      <input id="densidad" type="number" value="35" placeholder="Densidad LED">
+<select id="iluminacion">
+<option>Sin luz</option>
+<option>Frontal</option>
+<option>Retro</option>
+</select>
 
-      <button onclick="calcularPro()">Calcular</button>
-      <div id="resultadoPro"></div>
-    </div>
-  </div>
+<input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
+<input id="densidad" type="number" value="35" placeholder="Densidad LED">
 
+<button onclick="calcularPro()">Calcular</button>
+<div id="resultadoPro"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -120,9 +117,9 @@ texto.oninput=e=>state.texto=e.target.value.toUpperCase();
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
-function precioBase(){ 
-  let altura=state.tamano; 
-  let p=0;
+// precio base por cm
+function precioBase(){
+  let altura=state.tamano; let p=0;
   if(altura>=20 && altura<=30) p=1200;
   else if(altura>=31 && altura<=50) p=1100;
   else if(altura>=51 && altura<=90) p=1200;
@@ -130,9 +127,12 @@ function precioBase(){
   return p;
 }
 
-// precio por letra
-function precioPorLetra(){ return precioBase() * state.tamano; }
-function totalPrecio(){ return precioPorLetra() * letras(); }
+// precio por letra = precio base + 2000 por diseño
+function precioPorLetra(){
+  return precioBase() + 2000;
+}
+
+function totalPrecio(){ return letras()*precioPorLetra(); }
 
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto; }
 
@@ -142,6 +142,7 @@ function generar(){
   if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos"); return; }
 
   const fecha=new Date().toLocaleString();
+  const id="P-"+Math.floor(Math.random()*99999);
   const cantidad=letras();
   const precioLetra=precioPorLetra();
   const total=totalPrecio();
@@ -151,7 +152,7 @@ function generar(){
   <div style="text-align:center;margin-bottom:20px;">
     <img src="logo.png" style="width:240px;margin-bottom:10px;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
-    <p style="font-size:12px;color:#666;">${fecha}</p>
+    <p style="font-size:12px;color:#666;">${fecha} | ${id}</p>
   </div>
   <hr>
   <h3 style="font-size:14px;">Datos del cliente</h3>
@@ -171,6 +172,9 @@ function generar(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
+  </p>
 </div>`;
 
   document.getElementById("resultado").innerHTML=presupuestoHTML;
@@ -236,11 +240,11 @@ function loadHistorial(){
       state.material=item.material;
       state.texto=item.texto;
 
-      // mostrar presupuesto centrado
       const cantidad=letras();
       const precioLetra=precioPorLetra();
       const total=totalPrecio();
       const fecha=item.fecha;
+
       const presupuestoHTML=`
 <div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:20px;">
@@ -267,6 +271,7 @@ function loadHistorial(){
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
 </div>`;
+
       document.getElementById("resultado").innerHTML=presupuestoHTML;
       document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
     };
@@ -274,7 +279,6 @@ function loadHistorial(){
   });
 }
 
-// cargar historial al inicio
 loadHistorial();
 </script>
 </body>
