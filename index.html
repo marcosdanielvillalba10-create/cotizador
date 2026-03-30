@@ -15,7 +15,7 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:calc(100vh - 40px); overflow-y:auto; } 
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:calc(5*80px + 40px); overflow-y:auto; } /* altura para mostrar 5 ítems */
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
 #resultado { margin-top:20px; }
@@ -23,7 +23,6 @@ button:hover { background:#218838; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
-  #btnCalcular { margin-top:5px; }
 }
 </style>
 </head>
@@ -117,7 +116,6 @@ texto.oninput=e=>state.texto=e.target.value.toUpperCase();
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
-// precio base por cm
 function precioBase(){
   let altura=state.tamano; let p=0;
   if(altura>=20 && altura<=30) p=1200;
@@ -127,9 +125,9 @@ function precioBase(){
   return p;
 }
 
-// precio por letra = precio base + 2000 por diseño
+// precio por letra completo: precio base * altura + 2000 por diseño
 function precioPorLetra(){
-  return precioBase() + 2000;
+  return (precioBase() * state.tamano) + 2000;
 }
 
 function totalPrecio(){ return letras()*precioPorLetra(); }
@@ -240,11 +238,11 @@ function loadHistorial(){
       state.material=item.material;
       state.texto=item.texto;
 
+      // mostrar presupuesto centrado
       const cantidad=letras();
       const precioLetra=precioPorLetra();
       const total=totalPrecio();
       const fecha=item.fecha;
-
       const presupuestoHTML=`
 <div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:20px;">
@@ -271,7 +269,6 @@ function loadHistorial(){
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
 </div>`;
-
       document.getElementById("resultado").innerHTML=presupuestoHTML;
       document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
     };
@@ -279,6 +276,7 @@ function loadHistorial(){
   });
 }
 
+// cargar historial al inicio
 loadHistorial();
 </script>
 </body>
