@@ -19,7 +19,7 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 #generarBtn:hover, #descargarBtn:hover, #btnCalcular:hover { background:#0056b3; }
 #btnCalcular { font-size:16px; }
 
-#moduloPro { display:none; margin-top:10px; padding:15px; background:#f1f1f1; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+#moduloPro { display:none; margin-top:10px; padding:15px; background:#f1f1f1; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1); width:100%; }
 
 #historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:500px; overflow-y:auto; box-shadow:0 3px 10px rgba(0,0,0,0.05); font-size:14px; }
 .hist-item { padding:8px; margin-bottom:8px; background:#f4f4f4; border-radius:6px; cursor:pointer; transition: background 0.2s; }
@@ -29,21 +29,7 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 .checkbox-container { display:flex; align-items:center; margin-top:15px; gap:10px; font-size:14px; }
 .checkbox-container input { width:auto; }
-.checkbox-container label { display:flex; align-items:center; gap:4px; cursor:pointer; }
-
-.terminos-btn {
-  background:none;
-  border:none;
-  color:#007bff;
-  font-size:12px;
-  cursor:pointer;
-  text-decoration:underline;
-  padding:0;
-  margin:0;
-  display:inline-block;
-  line-height:1;
-  vertical-align:middle;
-}
+.terminos-btn { background:none; border:none; color:#007bff; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; }
 
 .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center; z-index:1000; }
 .modal { background:#fff; padding:20px; border-radius:10px; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow:0 5px 20px rgba(0,0,0,0.3); font-size:14px; }
@@ -83,10 +69,7 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
     <div class="checkbox-container">
       <input type="checkbox" id="acepto">
-      <label for="acepto">
-        <span>He leído y acepto los</span>
-        <button type="button" class="terminos-btn" onclick="abrirTerminos()">términos y condiciones</button>
-      </label>
+      <span>He leído y acepto los <button class="terminos-btn" onclick="abrirTerminos()">términos y condiciones</button></span>
     </div>
 
     <div style="display:flex; gap:10px; flex-direction:column;">
@@ -98,36 +81,13 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
   </div>
 
-  <div style="display:flex; flex-direction:column; gap:10px;">
-
+  <div>
     <div id="historial">
       <h3>Historial</h3>
       <div id="hist-items"></div>
     </div>
-
     <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
-
-    <div id="moduloPro">
-      <h3>Estimación técnica</h3>
-      <select id="frente">
-        <option>Acrílico</option>
-        <option>Chapa</option>
-      </select>
-      <select id="base">
-        <option>Contraletra</option>
-        <option>Patitas</option>
-      </select>
-      <select id="iluminacion">
-        <option>Sin luz</option>
-        <option>Frontal</option>
-        <option>Retro</option>
-      </select>
-      <input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
-      <input id="densidad" type="number" value="35" placeholder="Densidad LED">
-      <button onclick="calcularPro()">Calcular</button>
-      <div id="resultadoPro"></div>
-    </div>
-
+    <div id="moduloPro"></div>
   </div>
 
 </div>
@@ -149,9 +109,10 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-// Estado global
-const state={empresa:"", contacto:"", tamano:"", material:"", texto:""};
+// Estado de formulario
+const state={empresa:"", contacto:"", tamano:0, material:"", texto:""};
 
+// Enter para pasar al siguiente input
 document.querySelectorAll("input,select").forEach(el=>{
   el.addEventListener("keydown", e=>{
     if(e.key==="Enter"){
@@ -162,14 +123,15 @@ document.querySelectorAll("input,select").forEach(el=>{
   });
 });
 
-const cap=s=>s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
-empresa.oninput=e=>state.empresa=cap(e.target.value);
-contacto.oninput=e=>state.contacto=cap(e.target.value);
+// Mayúsculas
+empresa.oninput=e=>state.empresa=e.target.value.toUpperCase();
+contacto.oninput=e=>state.contacto=e.target.value.toUpperCase();
 tamano.oninput=e=>state.tamano=parseInt(e.target.value)||0;
 material.onchange=e=>state.material=e.target.value;
 texto.oninput=e=>state.texto=e.target.value.toUpperCase();
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
+
 function precioBase(){
   let altura=state.tamano; let p=0;
   if(altura>=20 && altura<=30) p=1200;
@@ -178,7 +140,9 @@ function precioBase(){
   if(state.material==="Acero inoxidable") p+=8000;
   return p;
 }
-function totalPrecio(){ return letras()*precioBase()+letras()*200; } // +200 por diseño
+
+function totalPrecio(){ return letras()* (precioBase() + 2000); } // +2000 diseño por letra
+
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("acepto").checked; }
 
 document.getElementById("generarBtn").onclick=generar;
@@ -188,7 +152,7 @@ function generar(){
 
   const fecha=new Date().toLocaleString();
   const cantidad=letras();
-  const precioLetra=precioBase()+200;
+  const precioLetra=precioBase() + 2000;
   const total=totalPrecio();
 
   const presupuestoHTML=`
@@ -245,7 +209,29 @@ function descargar(){
 
 function togglePro(){
   const m=document.getElementById("moduloPro");
-  m.style.display = m.style.display==="block"?"none":"block";
+  if(m.style.display==="block"){ m.style.display="none"; m.innerHTML=""; }
+  else {
+    m.style.display="block";
+    m.innerHTML=`
+      <h3>Estimación técnica</h3>
+      <select id="frente">
+        <option>Acrílico</option>
+        <option>Chapa</option>
+      </select>
+      <select id="base">
+        <option>Contraletra</option>
+        <option>Patitas</option>
+      </select>
+      <select id="iluminacion">
+        <option>Sin luz</option>
+        <option>Frontal</option>
+        <option>Retro</option>
+      </select>
+      <input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
+      <input id="densidad" type="number" value="35" placeholder="Densidad LED">
+      <button onclick="calcularPro()">Calcular</button>
+      <div id="resultadoPro"></div>`;
+  }
 }
 
 function calcularPro(){
@@ -266,7 +252,7 @@ function calcularPro(){
   if(score>85) score=85;
   if(score<45) score=45;
   let nivel=score>=80?"Alta":score>=60?"Media":"Baja";
-  resultadoPro.innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
+  document.getElementById("resultadoPro").innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
 }
 
 function loadHistorial(){
@@ -285,7 +271,7 @@ function loadHistorial(){
       state.texto=item.texto;
 
       const cantidad=letras();
-      const precioLetra=precioBase()+200;
+      const precioLetra=precioBase()+2000;
       const total=totalPrecio();
       const fecha=item.fecha;
       const presupuestoHTML=`
