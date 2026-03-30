@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Cotizador Corpóreos</title>
+
 <style>
 * { box-sizing:border-box; font-family:Arial,sans-serif; }
 body { margin:0; padding:0; background:#f4f6f8; }
@@ -14,11 +15,11 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; } /* altura ajustada para 5 ítems visibles */
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; } 
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
 #resultado { margin-top:20px; }
-#btnCalcular { margin-top:10px; }
+#btnCalcular { margin-top:10px; width:300px; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
@@ -30,43 +31,44 @@ button:hover { background:#218838; }
 
 <div class="contenedor">
 
-  <div class="main">
-    <img src="logo.png" class="logo">
-    <h2>Calculador estimativo de costos</h2>
-    <p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
+<div class="main">
 
-    <h3>Datos del cliente</h3>
-    <input id="empresa" placeholder="Empresa" data-next="contacto">
-    <input id="contacto" placeholder="Responsable" data-next="tamano">
+<img src="logo.png" class="logo">
 
-    <h3>Datos del trabajo</h3>
-    <input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
+<h2>Calculador estimativo de costos</h2>
+<p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
 
-    <select id="material" data-next="texto">
-      <option value="">Material</option>
-      <option>Chapa galvanizada</option>
-      <option>Acero inoxidable</option>
-    </select>
+<h3>Datos del cliente</h3>
+<input id="empresa" placeholder="Empresa" data-next="contacto">
+<input id="contacto" placeholder="Responsable" data-next="tamano">
 
-    <input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
+<h3>Datos del trabajo</h3>
+<input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
 
-    <div style="display:flex; gap:10px;">
-      <button id="generarBtn">Generar presupuesto</button>
-      <button onclick="descargar()">Descargar presupuesto</button>
-    </div>
+<select id="material" data-next="texto">
+<option value="">Material</option>
+<option>Chapa galvanizada</option>
+<option>Acero inoxidable</option>
+</select>
 
-    <div id="resultado"></div>
-  </div>
+<input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
 
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    <div id="historial">
-      <h3>Historial</h3>
-      <div id="hist-items"></div>
-    </div>
-    <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
-  </div>
+<div style="display:flex; gap:10px;">
+<button id="generarBtn">Generar presupuesto</button>
+<button onclick="descargar()">Descargar presupuesto</button>
+</div>
+
+<div id="resultado"></div>
 
 </div>
+
+<div>
+<div id="historial">
+<h3>Historial (últimos 15)</h3>
+<div id="hist-items"></div>
+</div>
+
+<button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
 
 <div id="moduloPro">
 <h3>Estimación técnica</h3>
@@ -93,6 +95,8 @@ button:hover { background:#218838; }
 <div id="resultadoPro"></div>
 </div>
 
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 const state={empresa:"", contacto:"", tamano:"", material:"", texto:""};
@@ -108,6 +112,7 @@ document.querySelectorAll("input,select").forEach(el=>{
 });
 
 const cap=s=>s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
+
 empresa.oninput=e=>state.empresa=cap(e.target.value);
 contacto.oninput=e=>state.contacto=cap(e.target.value);
 tamano.oninput=e=>state.tamano=parseInt(e.target.value)||0;
@@ -125,7 +130,7 @@ function precioBase(){
   return p;
 }
 
-function totalPrecio(){ return letras()*state.tamano*precioBase(); }
+function totalPrecio(){ return letras()*precioBase(); }
 
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto; }
 
