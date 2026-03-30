@@ -3,179 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <title>Cotizador Corpóreos</title>
-
 <style>
-* { box-sizing:border-box; font-family:Arial,sans-serif; }
+* { font-family: Arial, sans-serif; box-sizing: border-box; }
 body { margin:0; padding:0; background:#f4f6f8; }
-.contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; }
-.main { flex:1; background:#fff; padding:25px; border-radius:10px; }
-.logo { display:block; margin:0 auto 15px auto; width:240px; }
-h2,h3 { text-align:center; margin:10px 0; }
-input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; }
-button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
-button:hover { background:#218838; }
+.contenedor { max-width:900px; margin:auto; display:flex; flex-wrap: wrap; padding:20px; }
+.cotizador { flex:1 1 600px; background:#fff; padding:25px; border-radius:10px; margin-right:20px; }
+.historial { flex:0 0 250px; background:#fff; padding:15px; border-radius:10px; max-height:800px; overflow-y:auto; }
+.logo { display:block; margin:0 auto 15px auto; width:220px; }
+h2,h3 { text-align:center; }
+input,select { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; }
+button { width:100%; padding:12px; margin-top:10px; border:none; border-radius:6px; background-color:#28a745; color:white; cursor:pointer; }
+button:hover { background-color:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:calc(100vh - 40px); overflow-y:auto; }
-.hist-item { padding:10px; margin-bottom:10px; background:#f4f6f8; border-radius:6px; cursor:pointer; }
-.hist-item:hover { background:#e0e0e0; }
-#resultado { margin-top:20px; }
-@media(max-width:900px){
-  .contenedor { flex-direction:column; }
-  #historial { width:100%; height:200px; order:-1; }
-}
+.presupuesto-container { margin-top:20px; }
+.presupuesto { max-width:100%; margin:auto; padding:25px; background:#fff; border:1px solid #eee; font-family:Arial; color:#111; border-radius:10px; }
 </style>
 </head>
 <body>
 
 <div class="contenedor">
 
-<div class="main">
+  <div class="cotizador">
+    <img src="logo.png" class="logo">
+    <h2>Calculador estimativo de costos</h2>
+    <p style="text-align:center;font-size:13px;">
+      Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
+    </p>
 
-<img src="logo.png" class="logo">
+    <h3>Datos del cliente</h3>
+    <input id="empresa" placeholder="Empresa" data-next="contacto">
+    <input id="contacto" placeholder="Responsable" data-next="tamano">
 
-<h2>Calculador estimativo de costos</h2>
-<p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
+    <h3>Datos del trabajo</h3>
+    <input type="number" id="tamano" placeholder="Altura en cm" data-next="material">
+    <select id="material" data-next="texto">
+      <option value="">Material</option>
+      <option>Chapa galvanizada</option>
+      <option>Acero inoxidable</option>
+    </select>
+    <input id="texto" placeholder="Texto del cartel">
 
-<h3>Datos del cliente</h3>
-<input id="empresa" placeholder="Empresa" data-next="contacto">
-<input id="contacto" placeholder="Responsable" data-next="tamano">
+    <hr>
+    Cantidad letras: <span id="cant">0</span><br>
+    Precio por letra: $<span id="precioLetraOut">0</span><br>
+    Total: $<span id="total">0</span><br>
 
-<h3>Datos del trabajo</h3>
-<input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
+    <button onclick="generar()">Generar presupuesto</button>
+    <button onclick="descargar()">Descargar presupuesto</button>
 
-<select id="material" data-next="texto">
-<option value="">Material</option>
-<option>Chapa galvanizada</option>
-<option>Acero inoxidable</option>
-</select>
+    <button onclick="togglePro()">Calcular materiales</button>
 
-<input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
+    <div id="moduloPro">
+      <h3>Estimación técnica</h3>
+      <select id="frente">
+        <option>Acrílico</option>
+        <option>Chapa</option>
+      </select>
+      <select id="base">
+        <option>Contraletra</option>
+        <option>Patitas</option>
+      </select>
+      <select id="iluminacion">
+        <option>Sin luz</option>
+        <option>Frontal</option>
+        <option>Retro</option>
+      </select>
+      <input id="desperdicio" type="number" value="15">
+      <input id="densidad" type="number" value="35">
+      <button onclick="calcularPro()">Calcular estimación</button>
+      <div id="resultadoPro"></div>
+    </div>
 
-<div style="display:flex; gap:10px;">
-<button id="generarBtn">Generar presupuesto</button>
-<button onclick="descargar()">Descargar presupuesto</button>
-<button onclick="togglePro()">Calcular materiales</button>
-</div>
+    <div class="presupuesto-container" id="resultado"></div>
+  </div>
 
-<div id="moduloPro">
-<h3>Estimación técnica</h3>
-<select id="frente">
-<option>Acrílico</option>
-<option>Chapa</option>
-</select>
+  <div class="historial">
+    <h3>Historial</h3>
+    <div id="historialLista"></div>
+  </div>
 
-<select id="base">
-<option>Contraletra</option>
-<option>Patitas</option>
-</select>
-
-<select id="iluminacion">
-<option>Sin luz</option>
-<option>Frontal</option>
-<option>Retro</option>
-</select>
-
-<input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
-<input id="densidad" type="number" value="35" placeholder="Densidad LED">
-
-<button onclick="calcularPro()">Calcular</button>
-<div id="resultadoPro"></div>
-</div>
-
-<div id="resultado"></div>
-</div>
-
-<div id="historial">
-<h3>Historial</h3>
-<div id="hist-items"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-const SCRIPT_URL = "TU_URL_DE_GOOGLE_SCRIPT"; // reemplazar con tu URL de Google Script
+const GOOGLE_SCRIPT_URL = "TU_URL_DE_GOOGLE_SCRIPT"; // reemplazar con tu URL
+
 const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
+const cap = s => s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
 
 document.querySelectorAll("input,select").forEach(el=>{
   el.addEventListener("keydown",e=>{
-    if(e.key==="Enter"){ e.preventDefault(); const next=el.getAttribute("data-next"); if(next) document.getElementById(next)?.focus(); }
+    if(e.key==="Enter"){
+      e.preventDefault();
+      const next = el.getAttribute("data-next");
+      if(next) document.getElementById(next)?.focus();
+    }
   });
 });
 
-const cap=s=>s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
-
-empresa.oninput=e=>state.empresa=cap(e.target.value);
-contacto.oninput=e=>state.contacto=cap(e.target.value);
-tamano.oninput=e=>state.tamano=parseInt(e.target.value)||0;
-material.onchange=e=>state.material=e.target.value;
-texto.oninput=e=>state.texto=e.target.value.toUpperCase();
+empresa.oninput = e=>{ state.empresa = cap(e.target.value); e.target.value = state.empresa; update(); };
+contacto.oninput = e=>{ state.contacto = cap(e.target.value); e.target.value = state.contacto; update(); };
+tamano.oninput = e=>{ state.tamano = parseInt(e.target.value)||0; update(); };
+material.onchange = e=>{ state.material = e.target.value; update(); };
+texto.oninput = e=>{ state.texto = e.target.value.toUpperCase(); e.target.value=state.texto; update(); };
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
 function precioBase(){
-  let altura=state.tamano; let p=0;
-  if(altura>=20 && altura<=30) p=1200;
-  else if(altura>=31 && altura<=50) p=1100;
-  else if(altura>=51 && altura<=90) p=1200;
+  let p=0;
+  if(state.tamano>=20 && state.tamano<=30) p=1200;
+  else if(state.tamano>=31 && state.tamano<=50) p=1100;
+  else if(state.tamano>=51 && state.tamano<=90) p=1200;
   if(state.material==="Acero inoxidable") p+=8000;
   return p;
 }
 
-function totalPrecio(){ return letras()*state.tamano*precioBase(); }
+function update(){
+  const c = letras();
+  const p = precioBase();
+  const t = c * p;
+  cant.innerText = c;
+  precioLetraOut.innerText = p;
+  total.innerText = t;
+}
 
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto; }
 
-document.getElementById("generarBtn").onclick=generar;
-
 function generar(){
-  if(!ok()){ alert("Completa todos los campos"); return; }
+  update();
+  if(!ok()) { alert("Completá todos los campos"); return; }
 
-  const fecha=new Date().toLocaleString();
-  const id="P-"+Math.floor(Math.random()*99999);
-  const cantidad=letras();
-  const precioLetra=precioBase();
-  const total=totalPrecio();
+  const fecha = new Date().toLocaleDateString();
+  const id = "P-" + Math.floor(Math.random()*99999);
 
-  const presupuestoHTML=`
-<div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
-  <div style="text-align:center;margin-bottom:20px;">
-    <img src="logo.png" style="width:240px;margin-bottom:10px;">
-    <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
-    <p style="font-size:12px;color:#666;">${fecha} | ${id}</p>
-  </div>
-  <hr>
-  <h3 style="font-size:14px;">Datos del cliente</h3>
-  <p><b>Empresa:</b> ${state.empresa}</p>
-  <p><b>Responsable:</b> ${state.contacto}</p>
-  <hr>
-  <h3 style="font-size:14px;">Características del trabajo</h3>
-  <p><b>Altura:</b> ${state.tamano} cm</p>
-  <p><b>Material:</b> ${state.material}</p>
-  <p><b>Texto:</b> ${state.texto}</p>
-  <hr>
-  <div style="text-align:right;">
-    <p>Cantidad letras: <b>${cantidad}</b></p>
-    <p>Precio por letra: <b>$${precioLetra}</b></p>
-  </div>
-  <div style="margin-top:20px;padding:15px;background:#f4f6f8;text-align:center;border-radius:8px;">
-    <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
-    <h1 style="margin:5px 0;">$${total}</h1>
-  </div>
-  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
-    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
-  </p>
-</div>`;
+  const totalValor = total.innerText;
 
-  document.getElementById("resultado").innerHTML=presupuestoHTML;
-  document.getElementById("resultado").scrollIntoView({behavior:"smooth"});
+  const htmlPresupuesto = `
+  <div class="presupuesto" id="print">
+    <div style="text-align:center;margin-bottom:20px;">
+      <img src="logo.png" style="width:220px;margin-bottom:10px;">
+      <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
+      <p style="font-size:12px;color:#666;">${fecha} | ${id}</p>
+    </div>
+    <hr>
+    <h3 style="font-size:14px;">Datos del cliente</h3>
+    <p><b>Empresa:</b> ${state.empresa}</p>
+    <p><b>Responsable:</b> ${state.contacto}</p>
+    <hr>
+    <h3 style="font-size:14px;">Características del trabajo</h3>
+    <p><b>Altura:</b> ${state.tamano} cm</p>
+    <p><b>Material:</b> ${state.material}</p>
+    <p><b>Texto:</b> ${state.texto}</p>
+    <hr>
+    <div style="text-align:right;">
+      <p>Cantidad letras: <b>${letras()}</b></p>
+      <p>Precio por letra: <b>$${precioBase()}</b></p>
+    </div>
+    <div style="margin-top:20px;padding:15px;background:#f4f6f8;text-align:center;border-radius:8px;">
+      <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
+      <h1 style="margin:5px 0;">$${totalValor}</h1>
+    </div>
+    <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+      Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
+    </p>
+  </div>`;
 
-  fetch(`${SCRIPT_URL}?empresa=${encodeURIComponent(state.empresa)}&contacto=${encodeURIComponent(state.contacto)}&tamano=${state.tamano}&material=${encodeURIComponent(state.material)}&texto=${encodeURIComponent(state.texto)}&fecha=${encodeURIComponent(fecha)}&total=${total}`)
-  .then(r=>r.text())
-  .then(()=>loadHistorial());
+  resultado.innerHTML = htmlPresupuesto;
+  scrollToCenter("print");
+
+  guardarHistorial({fecha,id,empresa:state.empresa,contacto:state.contacto,tamano:state.tamano,material:state.material,texto:state.texto,total:totalValor});
+}
+
+function scrollToCenter(id){
+  const el=document.getElementById(id);
+  if(el){
+    const top=el.offsetTop - window.innerHeight/2 + el.offsetHeight/2;
+    window.scrollTo({top,behavior:"smooth"});
+  }
 }
 
 function descargar(){
   const el=document.getElementById("print");
-  if(!el){ alert("No hay presupuesto generado"); return; }
+  if(!el) return;
   html2canvas(el,{scale:2}).then(canvas=>{
     const a=document.createElement("a");
     a.download="presupuesto.png";
@@ -190,52 +199,93 @@ function togglePro(){
 }
 
 function calcularPro(){
-  const cantidad=letras(); if(!cantidad) return;
-  const desperdicio=parseFloat(document.getElementById("desperdicio").value||0)/100;
-  const densidad=parseFloat(document.getElementById("densidad").value||0);
-  const frente=document.getElementById("frente").value;
-  const iluminacion=document.getElementById("iluminacion").value;
-  const m2=cantidad*0.1;
-  const leds=m2*densidad;
-  let score=100;
-  if(frente==="Chapa") score-=8;
-  if(iluminacion==="Retro") score-=10;
-  if(iluminacion==="Frontal") score-=5;
-  if(desperdicio>0.15) score-=12;
-  if(densidad<30 || densidad>40) score-=15;
-  if(cantidad>50) score-=8;
-  if(score>85) score=85;
-  if(score<45) score=45;
-  let nivel=score>=80?"Alta":score>=60?"Media":"Baja";
-  resultadoPro.innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
+  const cantidad = letras();
+  if(!cantidad) return;
+  const desperdicio = parseFloat(document.getElementById("desperdicio").value||0)/100;
+  const densidad = parseFloat(document.getElementById("densidad").value||0);
+  const frente = document.getElementById("frente").value;
+  const iluminacion = document.getElementById("iluminacion").value;
+  const m2 = cantidad * 0.1;
+  const leds = m2 * densidad;
+  let score = 100;
+  if(frente==="Chapa") score -= 8;
+  if(iluminacion==="Retro") score -= 10;
+  if(iluminacion==="Frontal") score -= 5;
+  if(desperdicio > 0.15) score -= 12;
+  if(densidad < 30 || densidad > 40) score -= 15;
+  if(cantidad > 50) score -= 8;
+  if(score > 85) score = 85;
+  if(score < 45) score = 45;
+  let nivel = score >= 80 ? "Alta" : score >= 60 ? "Media" : "Baja";
+  resultadoPro.innerHTML = `m²: ${m2.toFixed(2)}<br>
+   LED estimados: ${Math.round(leds)}<br>
+   Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br>
+   <b>Confiabilidad: ${nivel} (${score}%)</b>`;
 }
 
-function loadHistorial(){
-  fetch(SCRIPT_URL)
-  .then(res=>res.json())
-  .then(data=>{
-    const container=document.getElementById("hist-items");
-    container.innerHTML="";
-    data.slice(-10).reverse().forEach(item=>{
-      const div=document.createElement("div");
-      div.className="hist-item";
-      div.innerHTML=`<b>${item.texto}</b><br>${item.empresa} - ${item.contacto}<br>${item.fecha} - $${item.total}`;
-      div.onclick=()=>{
-        state.empresa=item.empresa;
-        state.contacto=item.contacto;
-        state.tamano=item.tamano;
-        state.material=item.material;
-        state.texto=item.texto;
-        generar();
-      };
-      container.appendChild(div);
+// HISTORIAL
+async function guardarHistorial(presupuesto){
+  try {
+    const params = new URLSearchParams(presupuesto);
+    await fetch(GOOGLE_SCRIPT_URL + "?" + params.toString());
+    cargarHistorial();
+  } catch(e){ console.log("Error historial",e); }
+}
+
+async function cargarHistorial(){
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_URL + "?accion=leer");
+    const data = await res.json();
+    const lista = document.getElementById("historialLista");
+    lista.innerHTML = "";
+    data.slice(-10).reverse().forEach(p=>{
+      const div = document.createElement("div");
+      div.style.cursor="pointer";
+      div.style.borderBottom="1px solid #ddd";
+      div.style.padding="5px";
+      div.innerHTML = `<b>${p.fecha}</b> - ${p.texto} ($${p.total})`;
+      div.onclick = ()=>mostrarHistorial(p);
+      lista.appendChild(div);
     });
-  });
+  } catch(e){ console.log("Error cargar historial",e); }
 }
 
-// cargar historial al inicio
-loadHistorial();
+function mostrarHistorial(p){
+  const html = `
+  <div class="presupuesto" id="print">
+    <div style="text-align:center;margin-bottom:20px;">
+      <img src="logo.png" style="width:220px;margin-bottom:10px;">
+      <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
+      <p style="font-size:12px;color:#666;">${p.fecha} | ${p.id || ""}</p>
+    </div>
+    <hr>
+    <h3 style="font-size:14px;">Datos del cliente</h3>
+    <p><b>Empresa:</b> ${p.empresa}</p>
+    <p><b>Responsable:</b> ${p.contacto}</p>
+    <hr>
+    <h3 style="font-size:14px;">Características del trabajo</h3>
+    <p><b>Altura:</b> ${p.tamano} cm</p>
+    <p><b>Material:</b> ${p.material}</p>
+    <p><b>Texto:</b> ${p.texto}</p>
+    <hr>
+    <div style="text-align:right;">
+      <p>Cantidad letras: <b>${p.texto.replace(/\s/g,"").length}</b></p>
+      <p>Precio por letra: <b>$${precioBase()}</b></p>
+    </div>
+    <div style="margin-top:20px;padding:15px;background:#f4f6f8;text-align:center;border-radius:8px;">
+      <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
+      <h1 style="margin:5px 0;">$${p.total}</h1>
+    </div>
+    <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+      Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
+    </p>
+  </div>`;
+  resultado.innerHTML = html;
+  scrollToCenter("print");
+}
 
+cargarHistorial();
+update();
 </script>
 </body>
 </html>
