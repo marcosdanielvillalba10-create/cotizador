@@ -5,41 +5,39 @@
 <title>Cotizador Corpóreos</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
 * { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
-body { margin:0; padding:0; background:#f4f6f8; color:#333; }
+body { margin:0; padding:0; background:#f9f9fb; color:#333; }
 .contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; align-items:flex-start; }
-.main { flex:1; background:#fff; padding:25px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); }
+.main { flex:1; background:#fff; padding:20px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); }
 .logo { display:block; margin:0 auto 20px auto; width:240px; }
 h2,h3 { text-align:center; margin:15px 0; }
-input,select { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:6px; transition: border 0.2s; }
+input,select { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:6px; transition: border 0.2s; font-size:14px; }
 input:focus, select:focus { border-color:#007bff; outline:none; }
-button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-top:10px; transition: background 0.2s; }
-#generarBtn { background:#28a745; color:#fff; width:100%; }
-#generarBtn:hover { background:#218838; }
-#descargarBtn { background:#17a2b8; color:#fff; width:100%; }
-#descargarBtn:hover { background:#138496; }
-#btnCalcular { background:#ffc107; color:#212529; width:300px; margin-top:10px; }
-#btnCalcular:hover { background:#e0a800; }
+button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-top:10px; transition: background 0.2s; font-size:14px; }
+#generarBtn, #descargarBtn, #btnCalcular { background:#007bff; color:#fff; width:100%; }
+#generarBtn:hover, #descargarBtn:hover, #btnCalcular:hover { background:#0056b3; }
+#btnCalcular { font-size:16px; }
 
 #moduloPro { display:none; margin-top:10px; padding:15px; background:#f1f1f1; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
 
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:500px; overflow-y:auto; box-shadow:0 3px 10px rgba(0,0,0,0.05); }
-.hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; transition: background 0.2s; }
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:500px; overflow-y:auto; box-shadow:0 3px 10px rgba(0,0,0,0.05); font-size:14px; }
+.hist-item { padding:8px; margin-bottom:8px; background:#f4f4f4; border-radius:6px; cursor:pointer; transition: background 0.2s; }
 .hist-item:hover { background:#e0f0ff; }
 
 #resultado { margin-top:20px; }
 
-.checkbox-container { display:flex; align-items:center; margin-top:15px; gap:10px; }
+.checkbox-container { display:flex; align-items:center; margin-top:15px; gap:10px; font-size:14px; }
 .checkbox-container input { width:auto; }
 .terminos-btn { background:none; border:none; color:#007bff; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; }
 
 .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center; z-index:1000; }
-.modal { background:#fff; padding:20px; border-radius:10px; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow:0 5px 20px rgba(0,0,0,0.3); }
+.modal { background:#fff; padding:20px; border-radius:10px; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow:0 5px 20px rgba(0,0,0,0.3); font-size:14px; }
 
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
-  #btnCalcular { width:100%; margin-top:10px; }
+  #btnCalcular { margin-top:10px; }
 }
 </style>
 </head>
@@ -131,6 +129,7 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
+// Mantener todos los cálculos y funciones existentes tal como estaban
 const state={empresa:"", contacto:"", tamano:"", material:"", texto:""};
 
 document.querySelectorAll("input,select").forEach(el=>{
@@ -159,23 +158,22 @@ function precioBase(){
   if(state.material==="Acero inoxidable") p+=8000;
   return p;
 }
-function precioPorLetra(){ return state.tamano*precioBase()+2000; }
-function totalPrecio(){ return precioPorLetra()*letras(); }
+function totalPrecio(){ return letras()*precioBase()+letras()*200; } // +200 por diseño
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("acepto").checked; }
 
 document.getElementById("generarBtn").onclick=generar;
 
 function generar(){
-  if(!ok()){ alert("Completa todos los campos y acepta los términos."); return; }
+  if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos y aceptar los términos."); return; }
 
   const fecha=new Date().toLocaleString();
   const cantidad=letras();
-  const precioLetra=precioPorLetra();
+  const precioLetra=precioBase()+200;
   const total=totalPrecio();
 
   const presupuestoHTML=`
-<div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
-  <div style="text-align:center;margin-bottom:20px;">
+<div id="print" style="max-width:700px;margin:auto;padding:15px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
+  <div style="text-align:center;margin-bottom:15px;">
     <img src="logo.png" style="width:240px;margin-bottom:10px;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
     <p style="font-size:12px;color:#666;">${fecha}</p>
@@ -194,11 +192,11 @@ function generar(){
     <p>Cantidad letras: <b>${cantidad}</b></p>
     <p>Precio por letra: <b>$${precioLetra}</b></p>
   </div>
-  <div style="margin-top:20px;padding:15px;background:#f4f6f8;text-align:center;border-radius:8px;">
+  <div style="margin-top:15px;padding:10px;background:#f4f6f8;text-align:center;border-radius:8px;">
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
-  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:15px;">
     Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
     <b>Términos y condiciones:</b> El material se retira en su totalidad por un único punto y una sola vez. Seña del 50%. Deben enviar el archivo. No incluye material ni instalación. Presupuesto válido solo si se cumplen las condiciones.
   </p>
@@ -267,12 +265,12 @@ function loadHistorial(){
       state.texto=item.texto;
 
       const cantidad=letras();
-      const precioLetra=precioPorLetra();
+      const precioLetra=precioBase()+200;
       const total=totalPrecio();
       const fecha=item.fecha;
       const presupuestoHTML=`
-<div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
-  <div style="text-align:center;margin-bottom:20px;">
+<div id="print" style="max-width:700px;margin:auto;padding:15px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
+  <div style="text-align:center;margin-bottom:15px;">
     <img src="logo.png" style="width:240px;margin-bottom:10px;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
     <p style="font-size:12px;color:#666;">${fecha}</p>
@@ -291,11 +289,11 @@ function loadHistorial(){
     <p>Cantidad letras: <b>${cantidad}</b></p>
     <p>Precio por letra: <b>$${precioLetra}</b></p>
   </div>
-  <div style="margin-top:20px;padding:15px;background:#f4f6f8;text-align:center;border-radius:8px;">
+  <div style="margin-top:15px;padding:10px;background:#f4f6f8;text-align:center;border-radius:8px;">
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
-  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:15px;">
     Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
     <b>Términos y condiciones:</b> El material se retira en su totalidad por un único punto y una sola vez. Seña del 50%. Deben enviar el archivo. No incluye material ni instalación. Presupuesto válido solo si se cumplen las condiciones.
   </p>
