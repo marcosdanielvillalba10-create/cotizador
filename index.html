@@ -15,14 +15,17 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; } /* altura ajustada para 5 ítems */
+#historial-container { display:flex; flex-direction:column; width:300px; }
+#historial { flex:1; background:#fff; padding:15px; border-radius:10px; height:500px; overflow-y:auto; } /* altura ajustada para 5-6 ítems visibles */
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
-#resultado { margin-top:20px; }
 #btnCalcular { margin-top:10px; }
+#resultado { margin-top:20px; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
-  #historial { width:100%; height:200px; order:-1; }
+  #historial-container { width:100%; height:auto; }
+  #historial { height:200px; order:-1; }
+  #btnCalcular { order:1; margin-top:10px; }
 }
 </style>
 </head>
@@ -57,13 +60,6 @@ button:hover { background:#218838; }
 <button onclick="descargar()">Descargar presupuesto</button>
 </div>
 
-<div id="historial">
-<h3>Historial</h3>
-<div id="hist-items"></div>
-</div>
-
-<button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
-
 <div id="moduloPro">
 <h3>Estimación técnica</h3>
 <select id="frente">
@@ -93,6 +89,14 @@ button:hover { background:#218838; }
 
 </div>
 
+<div id="historial-container">
+  <div id="historial">
+    <h3>Historial</h3>
+    <div id="hist-items"></div>
+  </div>
+  <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 const state={empresa:"", contacto:"", tamano:"", material:"", texto:""};
@@ -117,23 +121,19 @@ texto.oninput=e=>state.texto=e.target.value.toUpperCase();
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
+// PRECIO POR LETRA CORRECTO: precio por CM * altura de cada letra
 function precioBase(){
-  let altura=state.tamano; let p=0;
+  let altura=state.tamano; 
+  let p=0;
   if(altura>=20 && altura<=30) p=1200;
   else if(altura>=31 && altura<=50) p=1100;
   else if(altura>=51 && altura<=90) p=1200;
+  if(state.material==="Acero inoxidable") p+=8000;
   return p;
 }
 
-function precioPorLetra(){
-  let p = precioBase() * state.tamano; // precio base por cm * altura
-  if(state.material==="Acero inoxidable") p += 8000; // adicional por letra
-  return p;
-}
-
-function totalPrecio(){
-  return precioPorLetra() * letras();
-}
+// TOTAL = precio por letra * cantidad de letras
+function totalPrecio(){ return precioBase()*letras(); }
 
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto; }
 
@@ -145,7 +145,7 @@ function generar(){
   const fecha=new Date().toLocaleString();
   const id="P-"+Math.floor(Math.random()*99999);
   const cantidad=letras();
-  const precioLetra=precioPorLetra();
+  const precioLetra=precioBase();
   const total=totalPrecio();
 
   const presupuestoHTML=`
@@ -173,15 +173,12 @@ function generar(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
-  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
-    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
-  </p>
 </div>`;
 
   document.getElementById("resultado").innerHTML=presupuestoHTML;
   document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
 
-  // historial local limitado a 15
+  // historial local
   let historial=JSON.parse(localStorage.getItem("historial")||"[]");
   historial.push({empresa:state.empresa,contacto:state.contacto,tamano:state.tamano,material:state.material,texto:state.texto,fecha,precioLetra,total});
   if(historial.length>15) historial=historial.slice(-15);
@@ -243,7 +240,7 @@ function loadHistorial(){
 
       // mostrar presupuesto centrado
       const cantidad=letras();
-      const precioLetra=precioPorLetra();
+      const precioLetra=precioBase();
       const total=totalPrecio();
       const fecha=item.fecha;
       const presupuestoHTML=`
