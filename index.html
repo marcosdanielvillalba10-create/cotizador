@@ -5,111 +5,25 @@
 <title>Cotizador Corpóreos</title>
 
 <style>
-* {
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-body {
-  margin:0;
-  padding:0;
-  background:#f4f6f8;
-}
-
-.contenedor {
-  display: flex;
-  flex-direction: row;
-  max-width: 1400px;
-  margin: auto;
-  padding: 20px;
-  gap: 20px;
-}
-
-.main {
-  flex: 1;
-  background: #fff;
-  padding: 25px;
-  border-radius: 10px;
-}
-
-.logo {
-  display:block;
-  margin:0 auto 15px auto;
-  width:240px; /* doble tamaño */
-}
-
-h2,h3 {
-  text-align:center;
-  margin: 10px 0;
-}
-
-input,select,button {
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-  border:1px solid #ccc;
-  border-radius:4px;
-}
-
-button {
-  cursor:pointer;
-  background:#28a745;
-  color:white;
-  border:none;
-  border-radius:6px;
-  padding:12px;
-  margin-top:10px;
-}
-
-button:hover {
-  background:#218838;
-}
-
-#moduloPro {
-  display:none;
-  margin-top:15px;
-  padding:10px;
-  background:#f1f1f1;
-  border-radius:6px;
-}
-
-#historial {
-  width:300px;
-  background:#fff;
-  padding:15px;
-  border-radius:10px;
-  height: calc(100vh - 40px);
-  overflow-y: auto;
-}
-
-.hist-item {
-  padding:10px;
-  margin-bottom:10px;
-  background:#f4f6f8;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-.hist-item:hover {
-  background:#e0e0e0;
-}
-
-#resultado {
-  margin-top:20px;
-}
-
+* { box-sizing:border-box; font-family:Arial,sans-serif; }
+body { margin:0; padding:0; background:#f4f6f8; }
+.contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; }
+.main { flex:1; background:#fff; padding:25px; border-radius:10px; }
+.logo { display:block; margin:0 auto 15px auto; width:240px; }
+h2,h3 { text-align:center; margin:10px 0; }
+input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; }
+button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
+button:hover { background:#218838; }
+#moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:calc(100vh - 40px); overflow-y:auto; }
+.hist-item { padding:10px; margin-bottom:10px; background:#f4f6f8; border-radius:6px; cursor:pointer; }
+.hist-item:hover { background:#e0e0e0; }
+#resultado { margin-top:20px; }
 @media(max-width:900px){
-  .contenedor {
-    flex-direction: column;
-  }
-  #historial {
-    width:100%;
-    height:200px;
-    order: -1;
-  }
+  .contenedor { flex-direction:column; }
+  #historial { width:100%; height:200px; order:-1; }
 }
 </style>
-
 </head>
 <body>
 
@@ -120,9 +34,7 @@ button:hover {
 <img src="logo.png" class="logo">
 
 <h2>Calculador estimativo de costos</h2>
-<p style="text-align:center;font-size:13px;">
-Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
-</p>
+<p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
 
 <h3>Datos del cliente</h3>
 <input id="empresa" placeholder="Empresa" data-next="contacto">
@@ -142,7 +54,7 @@ Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 <div style="display:flex; gap:10px;">
 <button id="generarBtn">Generar presupuesto</button>
 <button onclick="descargar()">Descargar presupuesto</button>
-<button onclick="togglePro()">Módulo PRO</button>
+<button onclick="togglePro()">Calcular materiales</button>
 </div>
 
 <div id="moduloPro">
@@ -166,12 +78,11 @@ Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 <input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
 <input id="densidad" type="number" value="35" placeholder="Densidad LED">
 
-<button onclick="calcularPro()">Calcular estimación</button>
+<button onclick="calcularPro()">Calcular</button>
 <div id="resultadoPro"></div>
 </div>
 
 <div id="resultado"></div>
-
 </div>
 
 <div id="historial">
@@ -180,51 +91,28 @@ Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
 <script>
-const SCRIPT_URL = "TU_URL_DE_GOOGLE_SCRIPT"; // reemplazar con tu URL
+const SCRIPT_URL = "TU_URL_DE_GOOGLE_SCRIPT"; // reemplazar con tu URL de Google Script
 const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
-
-const cap = s => s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
 
 document.querySelectorAll("input,select").forEach(el=>{
   el.addEventListener("keydown",e=>{
-    if(e.key==="Enter"){
-      e.preventDefault();
-      const next = el.getAttribute("data-next");
-      if(next) document.getElementById(next)?.focus();
-    }
+    if(e.key==="Enter"){ e.preventDefault(); const next=el.getAttribute("data-next"); if(next) document.getElementById(next)?.focus(); }
   });
 });
 
-empresa.oninput = e=>{
-  state.empresa = cap(e.target.value);
-  e.target.value = state.empresa;
-};
+const cap=s=>s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
 
-contacto.oninput = e=>{
-  state.contacto = cap(e.target.value);
-  e.target.value = state.contacto;
-};
-
-tamano.oninput = e=>{
-  state.tamano = parseInt(e.target.value) || 0;
-};
-
-material.onchange = e=>{
-  state.material = e.target.value;
-};
-
-texto.oninput = e=>{
-  state.texto = e.target.value.toUpperCase();
-  e.target.value = state.texto;
-};
+empresa.oninput=e=>state.empresa=cap(e.target.value);
+contacto.oninput=e=>state.contacto=cap(e.target.value);
+tamano.oninput=e=>state.tamano=parseInt(e.target.value)||0;
+material.onchange=e=>state.material=e.target.value;
+texto.oninput=e=>state.texto=e.target.value.toUpperCase();
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
 function precioBase(){
-  let altura = state.tamano;
-  let p=0;
+  let altura=state.tamano; let p=0;
   if(altura>=20 && altura<=30) p=1200;
   else if(altura>=31 && altura<=50) p=1100;
   else if(altura>=51 && altura<=90) p=1200;
@@ -232,22 +120,22 @@ function precioBase(){
   return p;
 }
 
-function totalPrecio(){
-  return letras() * state.tamano * precioBase();
-}
+function totalPrecio(){ return letras()*state.tamano*precioBase(); }
 
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto; }
 
+document.getElementById("generarBtn").onclick=generar;
+
 function generar(){
-  if(!ok()) { alert("Completa todos los campos"); return; }
+  if(!ok()){ alert("Completa todos los campos"); return; }
 
-  const fecha = new Date().toLocaleString();
-  const id = "P-" + Math.floor(Math.random()*99999);
-  const cantidad = letras();
-  const precioLetra = precioBase();
-  const total = totalPrecio();
+  const fecha=new Date().toLocaleString();
+  const id="P-"+Math.floor(Math.random()*99999);
+  const cantidad=letras();
+  const precioLetra=precioBase();
+  const total=totalPrecio();
 
-  const presupuestoHTML = `
+  const presupuestoHTML=`
 <div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:20px;">
     <img src="logo.png" style="width:240px;margin-bottom:10px;">
@@ -277,12 +165,9 @@ function generar(){
   </p>
 </div>`;
 
-  document.getElementById("resultado").innerHTML = presupuestoHTML;
-
-  // scroll automático
+  document.getElementById("resultado").innerHTML=presupuestoHTML;
   document.getElementById("resultado").scrollIntoView({behavior:"smooth"});
 
-  // guardar en Google Sheets
   fetch(`${SCRIPT_URL}?empresa=${encodeURIComponent(state.empresa)}&contacto=${encodeURIComponent(state.contacto)}&tamano=${state.tamano}&material=${encodeURIComponent(state.material)}&texto=${encodeURIComponent(state.texto)}&fecha=${encodeURIComponent(fecha)}&total=${total}`)
   .then(r=>r.text())
   .then(()=>loadHistorial());
@@ -290,7 +175,7 @@ function generar(){
 
 function descargar(){
   const el=document.getElementById("print");
-  if(!el) return;
+  if(!el){ alert("No hay presupuesto generado"); return; }
   html2canvas(el,{scale:2}).then(canvas=>{
     const a=document.createElement("a");
     a.download="presupuesto.png";
@@ -305,42 +190,37 @@ function togglePro(){
 }
 
 function calcularPro(){
-  const cantidad = letras();
-  if(!cantidad) return;
-  const desperdicio = parseFloat(document.getElementById("desperdicio").value||0)/100;
-  const densidad = parseFloat(document.getElementById("densidad").value||0);
-  const frente = document.getElementById("frente").value;
-  const iluminacion = document.getElementById("iluminacion").value;
-  const m2 = cantidad * 0.1;
-  const leds = m2 * densidad;
-  let score = 100;
-  if(frente==="Chapa") score -= 8;
-  if(iluminacion==="Retro") score -= 10;
-  if(iluminacion==="Frontal") score -= 5;
-  if(desperdicio > 0.15) score -= 12;
-  if(densidad < 30 || densidad > 40) score -= 15;
-  if(cantidad > 50) score -= 8;
-  if(score > 85) score = 85;
-  if(score < 45) score = 45;
-  let nivel = score >= 80 ? "Alta" : score >= 60 ? "Media" : "Baja";
-  resultadoPro.innerHTML =
-  `m²: ${m2.toFixed(2)}<br>
-   LED estimados: ${Math.round(leds)}<br>
-   Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br>
-   <b>Confiabilidad: ${nivel} (${score}%)</b>`;
+  const cantidad=letras(); if(!cantidad) return;
+  const desperdicio=parseFloat(document.getElementById("desperdicio").value||0)/100;
+  const densidad=parseFloat(document.getElementById("densidad").value||0);
+  const frente=document.getElementById("frente").value;
+  const iluminacion=document.getElementById("iluminacion").value;
+  const m2=cantidad*0.1;
+  const leds=m2*densidad;
+  let score=100;
+  if(frente==="Chapa") score-=8;
+  if(iluminacion==="Retro") score-=10;
+  if(iluminacion==="Frontal") score-=5;
+  if(desperdicio>0.15) score-=12;
+  if(densidad<30 || densidad>40) score-=15;
+  if(cantidad>50) score-=8;
+  if(score>85) score=85;
+  if(score<45) score=45;
+  let nivel=score>=80?"Alta":score>=60?"Media":"Baja";
+  resultadoPro.innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
 }
 
 function loadHistorial(){
   fetch(SCRIPT_URL)
   .then(res=>res.json())
   .then(data=>{
-    const container = document.getElementById("hist-items");
+    const container=document.getElementById("hist-items");
     container.innerHTML="";
-    data.slice(-10).reverse().forEach((item,i)=>{
-      const div = document.createElement("div");
+    data.slice(-10).reverse().forEach(item=>{
+      const div=document.createElement("div");
       div.className="hist-item";
       div.innerHTML=`<b>${item.texto}</b><br>${item.empresa} - ${item.contacto}<br>${item.fecha} - $${item.total}`;
-      div.onclick = ()=>{
+      div.onclick=()=>{
         state.empresa=item.empresa;
         state.contacto=item.contacto;
         state.tamano=item.tamano;
@@ -357,6 +237,5 @@ function loadHistorial(){
 loadHistorial();
 
 </script>
-
 </body>
 </html>
