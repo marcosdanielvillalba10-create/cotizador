@@ -19,7 +19,7 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 #generarBtn:hover, #descargarBtn:hover, #btnCalcular:hover { background:#0056b3; }
 #btnCalcular { font-size:16px; }
 
-#moduloPro { display:none; margin-top:10px; padding:15px; background:#f1f1f1; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1); width:100%; }
+#moduloPro { display:none; margin-top:10px; padding:15px; background:#f1f1f1; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1); max-width:300px; }
 
 #historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:500px; overflow-y:auto; box-shadow:0 3px 10px rgba(0,0,0,0.05); font-size:14px; }
 .hist-item { padding:8px; margin-bottom:8px; background:#f4f4f4; border-radius:6px; cursor:pointer; transition: background 0.2s; }
@@ -87,7 +87,26 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
       <div id="hist-items"></div>
     </div>
     <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
-    <div id="moduloPro"></div>
+    <div id="moduloPro">
+      <h3>Estimación técnica</h3>
+      <select id="frente">
+        <option>Acrílico</option>
+        <option>Chapa</option>
+      </select>
+      <select id="base">
+        <option>Contraletra</option>
+        <option>Patitas</option>
+      </select>
+      <select id="iluminacion">
+        <option>Sin luz</option>
+        <option>Frontal</option>
+        <option>Retro</option>
+      </select>
+      <input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
+      <input id="densidad" type="number" value="35" placeholder="Densidad LED">
+      <button onclick="calcularPro()">Calcular</button>
+      <div id="resultadoPro"></div>
+    </div>
   </div>
 
 </div>
@@ -109,53 +128,58 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-// Estado de formulario
-const state={empresa:"", contacto:"", tamano:0, material:"", texto:""};
+// Estado y mayúsculas
+const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
 
-// Enter para pasar al siguiente input
 document.querySelectorAll("input,select").forEach(el=>{
   el.addEventListener("keydown", e=>{
-    if(e.key==="Enter"){
-      e.preventDefault();
-      const next=el.getAttribute("data-next");
-      if(next) document.getElementById(next)?.focus();
-    }
+    if(e.key==="Enter"){ e.preventDefault(); const next = el.getAttribute("data-next"); if(next) document.getElementById(next)?.focus(); }
   });
 });
 
-// Mayúsculas
-empresa.oninput=e=>state.empresa=e.target.value.toUpperCase();
-contacto.oninput=e=>state.contacto=e.target.value.toUpperCase();
-tamano.oninput=e=>state.tamano=parseInt(e.target.value)||0;
-material.onchange=e=>state.material=e.target.value;
-texto.oninput=e=>state.texto=e.target.value.toUpperCase();
+const cap = s => s.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+empresa.oninput = e => state.empresa = cap(e.target.value);
+contacto.oninput = e => state.contacto = cap(e.target.value);
+tamano.oninput = e => state.tamano = parseInt(e.target.value)||0;
+material.onchange = e => state.material = e.target.value;
+texto.oninput = e => state.texto = e.target.value.toUpperCase();
 
+// Cantidad de letras
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
-function precioBase(){
-  let altura=state.tamano; let p=0;
-  if(altura>=20 && altura<=30) p=1200;
-  else if(altura>=31 && altura<=50) p=1100;
-  else if(altura>=51 && altura<=90) p=1200;
-  if(state.material==="Acero inoxidable") p+=8000;
+// -------- CÁLCULO CORREGIDO --------
+function precioBase() {
+  let altura = state.tamano;
+  let p = 0;
+  if (altura >= 20 && altura <= 30) p = 1200;
+  else if (altura >= 31 && altura <= 50) p = 1100;
+  else if (altura >= 51 && altura <= 90) p = 1200;
   return p;
 }
 
-function totalPrecio(){ return letras()* (precioBase() + 2000); } // +2000 diseño por letra
+function precioPorLetra() {
+  let precio = precioBase() * state.tamano + 2000;
+  if (state.material === "Acero inoxidable") precio += 8000;
+  return precio;
+}
+
+function totalPrecio() {
+  return letras() * precioPorLetra();
+}
 
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("acepto").checked; }
 
-document.getElementById("generarBtn").onclick=generar;
+document.getElementById("generarBtn").onclick = generar;
 
 function generar(){
   if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos y aceptar los términos."); return; }
 
-  const fecha=new Date().toLocaleString();
-  const cantidad=letras();
-  const precioLetra=precioBase() + 2000;
-  const total=totalPrecio();
+  const fecha = new Date().toLocaleString();
+  const cantidad = letras();
+  const precioLetra = precioPorLetra();
+  const total = totalPrecio();
 
-  const presupuestoHTML=`
+  const presupuestoHTML = `
 <div id="print" style="max-width:700px;margin:auto;padding:15px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:15px;">
     <img src="logo.png" style="width:240px;margin-bottom:10px;">
@@ -186,18 +210,18 @@ function generar(){
   </p>
 </div>`;
 
-  document.getElementById("resultado").innerHTML=presupuestoHTML;
+  document.getElementById("resultado").innerHTML = presupuestoHTML;
   document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
 
-  let historial=JSON.parse(localStorage.getItem("historial")||"[]");
-  historial.push({empresa:state.empresa,contacto:state.contacto,tamano:state.tamano,material:state.material,texto:state.texto,fecha,total});
-  if(historial.length>15) historial=historial.slice(-15);
-  localStorage.setItem("historial",JSON.stringify(historial));
+  let historial = JSON.parse(localStorage.getItem("historial")||"[]");
+  historial.push({empresa: state.empresa, contacto: state.contacto, tamano: state.tamano, material: state.material, texto: state.texto, fecha, total});
+  if(historial.length>15) historial = historial.slice(-15);
+  localStorage.setItem("historial", JSON.stringify(historial));
   loadHistorial();
 }
 
 function descargar(){
-  const el=document.getElementById("print");
+  const el = document.getElementById("print");
   if(!el){ alert("No hay presupuesto generado"); return; }
   html2canvas(el,{scale:2}).then(canvas=>{
     const a=document.createElement("a");
@@ -209,29 +233,7 @@ function descargar(){
 
 function togglePro(){
   const m=document.getElementById("moduloPro");
-  if(m.style.display==="block"){ m.style.display="none"; m.innerHTML=""; }
-  else {
-    m.style.display="block";
-    m.innerHTML=`
-      <h3>Estimación técnica</h3>
-      <select id="frente">
-        <option>Acrílico</option>
-        <option>Chapa</option>
-      </select>
-      <select id="base">
-        <option>Contraletra</option>
-        <option>Patitas</option>
-      </select>
-      <select id="iluminacion">
-        <option>Sin luz</option>
-        <option>Frontal</option>
-        <option>Retro</option>
-      </select>
-      <input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
-      <input id="densidad" type="number" value="35" placeholder="Densidad LED">
-      <button onclick="calcularPro()">Calcular</button>
-      <div id="resultadoPro"></div>`;
-  }
+  m.style.display = m.style.display==="block"?"none":"block";
 }
 
 function calcularPro(){
@@ -252,7 +254,7 @@ function calcularPro(){
   if(score>85) score=85;
   if(score<45) score=45;
   let nivel=score>=80?"Alta":score>=60?"Media":"Baja";
-  document.getElementById("resultadoPro").innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
+  resultadoPro.innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
 }
 
 function loadHistorial(){
@@ -271,7 +273,7 @@ function loadHistorial(){
       state.texto=item.texto;
 
       const cantidad=letras();
-      const precioLetra=precioBase()+2000;
+      const precioLetra=precioPorLetra();
       const total=totalPrecio();
       const fecha=item.fecha;
       const presupuestoHTML=`
