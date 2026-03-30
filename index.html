@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <title>Cotizador Corpóreos</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-
 * {
   font-family: Arial, sans-serif;
   box-sizing: border-box;
@@ -20,7 +17,7 @@ body {
 }
 
 .contenedor {
-  max-width:900px;
+  max-width:800px; /* más ancho que antes */
   margin:auto;
   background:#fff;
   padding:25px;
@@ -31,6 +28,8 @@ body {
   display:block;
   margin:0 auto 15px auto;
   width:240px; /* doble tamaño */
+  max-width:100%;
+  height:auto;
 }
 
 h2,h3 {
@@ -60,14 +59,6 @@ button:hover {
   background-color:#218838;
 }
 
-#error {
-  color:red;
-  text-align:center;
-  font-weight:bold;
-  display:none;
-  margin-top:10px;
-}
-
 #moduloPro {
   display:none;
   margin-top:15px;
@@ -76,15 +67,14 @@ button:hover {
   border-radius:6px;
 }
 
-@media (max-width:600px){
+@media screen and (max-width:600px){
   .contenedor {
     padding:15px;
   }
-  .logo {
-    width:180px;
+  button {
+    padding:10px;
   }
 }
-
 </style>
 
 </head>
@@ -102,13 +92,11 @@ Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 </p>
 
 <h3>Datos del cliente</h3>
-
 <input id="empresa" placeholder="Empresa" data-next="contacto">
 <input id="contacto" placeholder="Responsable" data-next="tamano">
 
 <h3>Datos del trabajo</h3>
-
-<input id="tamano" placeholder="Altura en cm" type="number" min="20" max="90" data-next="material">
+<input id="tamano" placeholder="Altura en cm (ej: 20, 70)" data-next="material" type="number">
 
 <select id="material" data-next="texto">
 <option value="">Material</option>
@@ -118,8 +106,6 @@ Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
 
 <input id="texto" placeholder="Texto del cartel">
 
-<div id="error">Por favor completa todos los campos correctamente.</div>
-
 <hr>
 
 Cantidad letras: <span id="cant">0</span><br>
@@ -128,12 +114,12 @@ Total: $<span id="total">0</span><br>
 
 <button onclick="generar()">Generar presupuesto</button>
 <button onclick="descargar()">Descargar presupuesto</button>
+<button id="verHistorialBtn">Ver historial de presupuestos</button>
 
 <div id="resultado"></div>
+<div id="historial" style="margin-top:15px;"></div>
 
-<button onclick="togglePro()">
-Estimación de material (herramienta técnica)
-</button>
+<button onclick="togglePro()">Estimación de material (herramienta técnica)</button>
 
 <div id="moduloPro">
 
@@ -169,13 +155,10 @@ Estimación de material (herramienta técnica)
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxwjsd3cwu8HcvRw7ADSkpjs_q5NP7OwH935eJzd_tBYfYGE8xliLb2y33anspPTUnq/exec";
-
 const state = {
   empresa:"",
   contacto:"",
-  tamano:"",
+  tamano:0,
   material:"",
   texto:""
 };
@@ -206,7 +189,7 @@ contacto.oninput = e=>{
 };
 
 tamano.oninput = e=>{
-  state.tamano = e.target.value;
+  state.tamano = parseInt(e.target.value)||0;
   update();
 };
 
@@ -226,112 +209,82 @@ function letras(){
 }
 
 function precioBase(){
-  const altura = parseInt(state.tamano||0);
-  let p = 0;
+  let pcm = 0;
 
-  if(altura>=20 && altura<=30) p=1200;
-  else if(altura>=31 && altura<=50) p=1100;
-  else if(altura>=51 && altura<=90) p=1200;
+  if(state.tamano >=20 && state.tamano <=30) pcm=1200;
+  else if(state.tamano >=31 && state.tamano <=50) pcm=1100;
+  else if(state.tamano >=51 && state.tamano <=90) pcm=1200;
 
-  if(state.material==="Acero inoxidable") p += 8000 / (altura || 1);
+  let precioLetra = (state.tamano || 0) * pcm;
 
-  return p;
+  if(state.material==="Acero inoxidable") precioLetra += 8000;
+
+  return precioLetra;
 }
 
 function update(){
   const c = letras();
   const p = precioBase();
-  const t = c * (parseInt(state.tamano || 0) * p);
-
+  const t = c * p + c*2000; // suma de preparación de archivo
   cant.innerText = c;
-  precioLetraOut.innerText = (parseInt(state.tamano || 0) * p).toLocaleString();
-  total.innerText = t.toLocaleString();
+  precioLetraOut.innerText = p;
+  total.innerText = t;
 }
 
 function ok(){
-  if(!state.empresa || !state.contacto || !state.tamano || !state.material || !state.texto) {
-    document.getElementById("error").style.display="block";
-    return false;
-  }
-  document.getElementById("error").style.display="none";
-  return true;
+  return state.empresa && state.contacto && state.tamano>0 && state.material && state.texto;
 }
 
 function generar(){
-
   update();
   if(!ok()) return;
 
   const fecha = new Date().toLocaleDateString();
   const id = "P-" + Math.floor(Math.random()*99999);
+  const totalValue = parseInt(total.innerText);
 
-  const cantidadLetras = letras();
-  const altura = parseInt(state.tamano || 0);
-  const precioLetra = precioBase() * altura;
-  const totalPresupuesto = cantidadLetras * precioLetra + cantidadLetras*2000; // diseño incluido
-
-  // Guardar en Google Sheet
-  fetch(GOOGLE_SHEET_URL + `?empresa=${encodeURIComponent(state.empresa)}&contacto=${encodeURIComponent(state.contacto)}&texto=${encodeURIComponent(state.texto)}&altura=${altura}&material=${state.material}&precio=${totalPresupuesto}`)
-  .then(res=>console.log("Enviado a Sheet"))
-  .catch(err=>console.error(err));
-
-  // Guardar local para historial en navegador
-  let historial = JSON.parse(localStorage.getItem("historial")||"[]");
-  historial.unshift({fecha,id,state,total:totalPresupuesto});
-  localStorage.setItem("historial",JSON.stringify(historial.slice(0,10)));
+  // guardar historial local
+  let historial = JSON.parse(localStorage.getItem("historialPresupuestos") || "[]");
+  historial.push({
+    fecha: fecha,
+    id: id,
+    empresa: state.empresa,
+    contacto: state.contacto,
+    tamano: state.tamano,
+    material: state.material,
+    texto: state.texto,
+    total: totalValue
+  });
+  localStorage.setItem("historialPresupuestos", JSON.stringify(historial));
 
   resultado.innerHTML = `
-<div id="print" style="
-  max-width:900px;
-  margin:auto;
-  padding:25px;
-  background:#fff;
-  border:1px solid #eee;
-  font-family:Arial;
-  color:#111;
-">
-
+<div id="print" style="max-width:800px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:20px;">
     <img src="logo.png" style="width:240px;margin-bottom:10px;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
     <p style="font-size:12px;color:#666;">${fecha} | ${id}</p>
   </div>
-
   <hr>
-
   <h3 style="font-size:14px;">Datos del cliente</h3>
   <p><b>Empresa:</b> ${state.empresa}</p>
   <p><b>Responsable:</b> ${state.contacto}</p>
-
   <hr>
-
   <h3 style="font-size:14px;">Características del trabajo</h3>
   <p><b>Altura:</b> ${state.tamano} cm</p>
   <p><b>Material:</b> ${state.material}</p>
   <p><b>Texto:</b> ${state.texto}</p>
-
   <hr>
-
   <div style="text-align:right;">
-    <p>Cantidad letras: <b>${cantidadLetras}</b></p>
-    <p>Precio por letra: <b>$${precioLetra.toLocaleString()}</b></p>
+    <p>Cantidad letras: <b>${letras()}</b></p>
+    <p>Precio por letra: <b>$${precioBase()}</b></p>
   </div>
-
-  <div style="
-    margin-top:20px;
-    padding:15px;
-    background:#f4f6f8;
-    text-align:center;
-    border-radius:8px;
-  ">
+  <div style="margin-top:20px;padding:15px;background:#f4f6f8;text-align:center;border-radius:8px;">
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
-    <h1 style="margin:5px 0;">$${totalPresupuesto.toLocaleString()}</h1>
+    <h1 style="margin:5px 0;">$${totalValue}</h1>
   </div>
-
   <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
     Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
   </p>
-
 </div>
   `;
 }
@@ -339,7 +292,6 @@ function generar(){
 function descargar(){
   const el=document.getElementById("print");
   if(!el) return;
-
   html2canvas(el,{scale:2}).then(canvas=>{
     const a=document.createElement("a");
     a.download="presupuesto.png";
@@ -354,7 +306,6 @@ function togglePro(){
 }
 
 function calcularPro(){
-
   const cantidad = letras();
   if(!cantidad) return;
 
@@ -368,18 +319,15 @@ function calcularPro(){
   const leds = m2 * densidad;
 
   let score = 100;
-
   if(frente==="Chapa") score -= 8;
   if(iluminacion==="Retro") score -= 10;
   if(iluminacion==="Frontal") score -= 5;
-
   if(desperdicio > 0.15) score -= 12;
   if(densidad < 30 || densidad > 40) score -= 15;
   if(cantidad > 50) score -= 8;
 
   if(score > 85) score = 85;
   if(score < 45) score = 45;
-
   let nivel = score >= 80 ? "Alta" : score >= 60 ? "Media" : "Baja";
 
   resultadoPro.innerHTML =
@@ -389,8 +337,24 @@ function calcularPro(){
    <b>Confiabilidad: ${nivel} (${score}%)</b>`;
 }
 
-update();
+// mostrar historial
+document.getElementById("verHistorialBtn").addEventListener("click", () => {
+  const historial = JSON.parse(localStorage.getItem("historialPresupuestos") || "[]");
+  if(historial.length === 0){
+    document.getElementById("historial").innerHTML = "<p>No hay presupuestos generados todavía.</p>";
+    return;
+  }
+  let html = "<h3>Últimos presupuestos:</h3><ul style='font-size:13px;'>";
+  historial.slice(-10).reverse().forEach(item => {
+    html += `<li>
+      <b>Fecha:</b> ${item.fecha} | <b>ID:</b> ${item.id} | <b>Cliente:</b> ${item.empresa} | <b>Texto:</b> ${item.texto} | <b>Altura:</b> ${item.tamano} | <b>Material:</b> ${item.material} | <b>Total:</b> $${item.total}
+    </li>`;
+  });
+  html += "</ul>";
+  document.getElementById("historial").innerHTML = html;
+});
 
+update();
 </script>
 
 </body>
