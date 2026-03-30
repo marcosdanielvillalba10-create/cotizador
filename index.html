@@ -8,7 +8,7 @@
 * { box-sizing:border-box; font-family:Arial,sans-serif; }
 body { margin:0; padding:0; background:#f4f6f8; }
 .contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; }
-.main { flex:1; background:#fff; padding:25px; border-radius:10px; min-width:300px; }
+.main { flex:1; background:#fff; padding:25px; border-radius:10px; }
 .logo { display:block; margin:0 auto 15px auto; width:240px; }
 h2,h3 { text-align:center; margin:10px 0; }
 input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; }
@@ -22,6 +22,7 @@ button:hover { background:#218838; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
+  #moduloPro { order:1; }
 }
 </style>
 </head>
@@ -51,14 +52,23 @@ button:hover { background:#218838; }
 
 <input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
 
-<div style="display:flex; gap:10px; flex-wrap:wrap;">
+<div style="display:flex; gap:10px;">
 <button id="generarBtn">Generar presupuesto</button>
 <button onclick="descargar()">Descargar presupuesto</button>
-<button onclick="togglePro()">Calcular materiales</button>
 </div>
 
+<div id="resultado"></div>
+
+</div> <!-- fin main -->
+
+<div id="historial">
+<h3>Historial</h3>
+<div id="hist-items"></div>
+
+<div style="margin-top:20px;">
+<button onclick="togglePro()">Calcular materiales</button>
 <div id="moduloPro">
-<h3>Calcular materiales</h3>
+<h3>Estimación técnica</h3>
 <select id="frente">
 <option>Acrílico</option>
 <option>Chapa</option>
@@ -81,14 +91,11 @@ button:hover { background:#218838; }
 <button onclick="calcularPro()">Calcular</button>
 <div id="resultadoPro"></div>
 </div>
-
-<div id="resultado"></div>
 </div>
 
-<div id="historial">
-<h3>Historial de presupuestos</h3>
-<div id="hist-items"></div>
-</div>
+</div> <!-- fin historial -->
+
+</div> <!-- fin contenedor -->
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
@@ -132,7 +139,7 @@ function generar(){
   const fecha=new Date().toLocaleString();
   const id="P-"+Math.floor(Math.random()*99999);
   const cantidad=letras();
-  const precioLetra=precioBase();
+  const precioLetraReal=precioBase()*state.tamano;
   const total=totalPrecio();
 
   const presupuestoHTML=`
@@ -154,7 +161,7 @@ function generar(){
   <hr>
   <div style="text-align:right;">
     <p>Cantidad letras: <b>${cantidad}</b></p>
-    <p>Precio por letra: <b>$${precioLetra}</b></p>
+    <p>Precio por letra: <b>$${precioLetraReal}</b></p>
   </div>
   <div style="margin-top:20px;padding:15px;background:#f4f6f8;text-align:center;border-radius:8px;">
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
@@ -166,9 +173,9 @@ function generar(){
 </div>`;
 
   document.getElementById("resultado").innerHTML=presupuestoHTML;
-  document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
+  document.getElementById("resultado").scrollIntoView({behavior:"smooth"});
 
-  // Guardar en Google Sheets
+  // enviar a Google Sheet
   fetch(`${SCRIPT_URL}?empresa=${encodeURIComponent(state.empresa)}&contacto=${encodeURIComponent(state.contacto)}&tamano=${state.tamano}&material=${encodeURIComponent(state.material)}&texto=${encodeURIComponent(state.texto)}&fecha=${encodeURIComponent(fecha)}&total=${total}`)
   .then(r=>r.text())
   .then(()=>loadHistorial());
