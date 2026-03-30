@@ -15,15 +15,16 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:400px; overflow-y:auto; } /* altura para mostrar 5 ítems */
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; } 
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
 #resultado { margin-top:20px; }
 #btnCalcular { margin-top:10px; width:100%; }
-#checkbox-container { display:flex; align-items:center; gap:10px; margin-top:10px; }
-#bases-text { background:#ffeb3b; padding:5px 10px; border-radius:6px; cursor:pointer; font-weight:bold; }
+#checkbox-container { margin-top:10px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
 #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
-#modal-content { background:#fff; padding:20px; border-radius:8px; max-width:500px; max-height:70%; overflow-y:auto; }
+#modal-content { background:white; padding:20px; max-width:500px; max-height:80%; overflow-y:auto; border-radius:8px; }
+#modal-content h3 { margin-top:0; }
+#cerrarModal { cursor:pointer; color:#007bff; text-decoration:underline; font-size:12px; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
@@ -54,27 +55,30 @@ button:hover { background:#218838; }
 <option>Acero inoxidable</option>
 </select>
 
-<input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
+<input id="texto" placeholder="Texto del cartel" data-next="chkBases">
 
+<!-- Checkbox obligatorio -->
 <div id="checkbox-container">
   <input type="checkbox" id="chkBases">
-  <span id="bases-text">Bases y condiciones</span>
+  <label for="chkBases">He leído y acepto los términos para la fabricación</label>
+  <span id="bases-text" style="color:#007bff; cursor:pointer; font-size:12px; text-decoration:underline;">Términos y condiciones</span>
 </div>
 
-<div style="display:flex; gap:10px;">
-<button id="generarBtn">Generar presupuesto</button>
-<button onclick="descargar()">Descargar presupuesto</button>
+<div style="display:flex; gap:10px; margin-top:10px;">
+  <button id="generarBtn">Generar presupuesto</button>
+  <button onclick="descargar()">Descargar presupuesto</button>
 </div>
 
 <div id="resultado"></div>
 
-</div>
+</div> <!-- fin main -->
 
 <div id="historial">
 <h3>Historial</h3>
 <div id="hist-items"></div>
-<button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
 </div>
+
+<button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
 
 <div id="moduloPro">
 <h3>Estimación técnica</h3>
@@ -101,17 +105,18 @@ button:hover { background:#218838; }
 <div id="resultadoPro"></div>
 </div>
 
+<!-- Modal de términos -->
 <div id="modal">
   <div id="modal-content">
-    <h3>Bases y condiciones</h3>
+    <h3>Términos y condiciones</h3>
     <p>
     El material se retira en su totalidad por un único punto y una sola vez.<br>
     Seña del 50%.<br>
     Deben enviar el archivo para que nosotros lo preparemos para enviar a cortar.<br>
     No incluye material ni instalación.<br>
-    El presupuesto solo se mantiene si se cumplen las condiciones; en caso de algún cambio o imprevisto se aplicarán cargos.
+    El presupuesto solo se mantendrá si se cumplen estas condiciones. En caso de cambios o imprevistos se aplicarán cargos adicionales.
     </p>
-    <button onclick="cerrarModal()">Cerrar</button>
+    <span id="cerrarModal">Cerrar</span>
   </div>
 </div>
 
@@ -139,41 +144,33 @@ texto.oninput=e=>state.texto=e.target.value.toUpperCase();
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
+// Precio base por letra según tamaño y material
 function precioBase(){
   let altura=state.tamano; let p=0;
   if(altura>=20 && altura<=30) p=1200;
   else if(altura>=31 && altura<=50) p=1100;
   else if(altura>=51 && altura<=90) p=1200;
   if(state.material==="Acero inoxidable") p+=8000;
-  // agregar 2000 por letra de diseño
-  return p + 2000;
+  return p;
 }
 
-function totalPrecio(){ return letras()*precioBase(); }
+// Precio total por letra + adicional de diseño 2000 por letra
+function totalPrecio(){ return letras()*(precioBase()+2000); }
 
-function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("chkBases").checked; }
+function ok(){ 
+  return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("chkBases").checked; 
+}
 
 document.getElementById("generarBtn").onclick=generar;
 
-document.getElementById("bases-text").onclick=()=>{document.getElementById("modal").style.display="flex";};
-function cerrarModal(){document.getElementById("modal").style.display="none";}
-
 function generar(){
-  if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos y aceptar las bases"); return; }
+  if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos y aceptar los términos"); return; }
 
   const fecha=new Date().toLocaleString();
   const id="P-"+Math.floor(Math.random()*99999);
   const cantidad=letras();
-  const precioLetra=precioBase();
+  const precioLetra=precioBase()+2000; // incluir adicional diseño
   const total=totalPrecio();
-
-  const basesHTML = `<p style="font-size:11px;color:#777;margin-top:10px;">
-  El material se retira en su totalidad por un único punto y una sola vez.<br>
-  Seña del 50%.<br>
-  Deben enviar el archivo para que nosotros lo preparemos para enviar a cortar.<br>
-  No incluye material ni instalación.<br>
-  El presupuesto solo se mantiene si se cumplen las condiciones; en caso de algún cambio o imprevisto se aplicarán cargos.
-  </p>`;
 
   const presupuestoHTML=`
 <div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
@@ -200,9 +197,9 @@ function generar(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
-  ${basesHTML}
-  <p style="font-size:11px;color:#777;text-align:center;margin-top:10px;">
-    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
+    El presupuesto solo se mantiene si se cumplen los <b>términos y condiciones</b>.
   </p>
 </div>`;
 
@@ -270,21 +267,15 @@ function loadHistorial(){
       state.texto=item.texto;
 
       const cantidad=letras();
-      const precioLetra=precioBase();
+      const precioLetra=precioBase()+2000;
       const total=totalPrecio();
-      const basesHTML = `<p style="font-size:11px;color:#777;margin-top:10px;">
-      El material se retira en su totalidad por un único punto y una sola vez.<br>
-      Seña del 50%.<br>
-      Deben enviar el archivo para que nosotros lo preparemos para enviar a cortar.<br>
-      No incluye material ni instalación.<br>
-      El presupuesto solo se mantiene si se cumplen las condiciones; en caso de algún cambio o imprevisto se aplicarán cargos.
-      </p>`;
+      const fecha=item.fecha;
       const presupuestoHTML=`
 <div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:20px;">
     <img src="logo.png" style="width:240px;margin-bottom:10px;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
-    <p style="font-size:12px;color:#666;">${item.fecha}</p>
+    <p style="font-size:12px;color:#666;">${fecha}</p>
   </div>
   <hr>
   <h3 style="font-size:14px;">Datos del cliente</h3>
@@ -304,7 +295,10 @@ function loadHistorial(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
-  ${basesHTML}
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
+    El presupuesto solo se mantiene si se cumplen los <b>términos y condiciones</b>.
+  </p>
 </div>`;
       document.getElementById("resultado").innerHTML=presupuestoHTML;
       document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
@@ -314,6 +308,11 @@ function loadHistorial(){
 }
 
 loadHistorial();
+
+// Modal
+document.getElementById("bases-text").onclick = () => document.getElementById("modal").style.display = "flex";
+document.getElementById("cerrarModal").onclick = () => document.getElementById("modal").style.display = "none";
+
 </script>
 </body>
 </html>
