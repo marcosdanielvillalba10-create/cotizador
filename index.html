@@ -14,11 +14,12 @@ body { margin:0; padding:0; background:#f9f9fb; color:#333; }
 h2,h3 { text-align:center; margin:15px 0; }
 input,select { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:6px; transition: border 0.2s; font-size:14px; text-transform:uppercase; }
 input:focus, select:focus { border-color:#007bff; outline:none; }
-button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-top:10px; transition: background 0.2s; font-size:14px; background:#007bff; color:#fff; width:100%; }
-button:hover { background:#0056b3; }
+button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-top:10px; transition: background 0.2s; font-size:14px; }
+#generarBtn, #descargarBtn, #btnCalcular { background:#007bff; color:#fff; width:100%; }
+#generarBtn:hover, #descargarBtn:hover, #btnCalcular:hover { background:#0056b3; }
 #btnCalcular { font-size:16px; }
 
-#moduloPro { display:none; margin-top:10px; padding:15px; background:#f1f1f1; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1); width:100%; max-width:300px; }
+#moduloPro { display:none; margin-top:10px; padding:15px; background:#f1f1f1; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1); max-width:100%; }
 
 #historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:500px; overflow-y:auto; box-shadow:0 3px 10px rgba(0,0,0,0.05); font-size:14px; }
 .hist-item { padding:8px; margin-bottom:8px; background:#f4f4f4; border-radius:6px; cursor:pointer; transition: background 0.2s; }
@@ -26,9 +27,9 @@ button:hover { background:#0056b3; }
 
 #resultado { margin-top:20px; }
 
-.checkbox-container { display:flex; align-items:center; margin-top:15px; gap:5px; font-size:14px; flex-wrap:wrap; }
-.checkbox-container input { width:auto; margin-top:0; }
-.terminos-btn { background:none; border:none; color:#007bff; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; }
+.checkbox-container { display:flex; align-items:center; gap:5px; flex-wrap:wrap; font-size:14px; }
+.checkbox-container input { width:auto; }
+.terminos-btn { background:none; border:none; color:#007bff; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; margin-left:4px; }
 
 .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center; z-index:1000; }
 .modal { background:#fff; padding:20px; border-radius:10px; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow:0 5px 20px rgba(0,0,0,0.3); font-size:14px; }
@@ -37,7 +38,6 @@ button:hover { background:#0056b3; }
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
   #btnCalcular { margin-top:10px; }
-  #moduloPro { max-width:100%; }
 }
 </style>
 </head>
@@ -69,7 +69,8 @@ button:hover { background:#0056b3; }
 
     <div class="checkbox-container">
       <input type="checkbox" id="acepto">
-      <label for="acepto" style="margin:0;">He leído y acepto los <button class="terminos-btn" onclick="abrirTerminos()">términos y condiciones</button></label>
+      <span>He leído y acepto los</span>
+      <button class="terminos-btn" onclick="abrirTerminos()">términos y condiciones</button>
     </div>
 
     <div style="display:flex; gap:10px; flex-direction:column;">
@@ -79,14 +80,8 @@ button:hover { background:#0056b3; }
 
     <div id="resultado"></div>
 
-  </div>
-
-  <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:300px;">
-    <div id="historial">
-      <h3>Historial</h3>
-      <div id="hist-items"></div>
-    </div>
     <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
+
     <div id="moduloPro">
       <h3>Estimación técnica</h3>
       <select id="frente">
@@ -106,6 +101,14 @@ button:hover { background:#0056b3; }
       <input id="densidad" type="number" value="35" placeholder="Densidad LED">
       <button onclick="calcularPro()">Calcular</button>
       <div id="resultadoPro"></div>
+    </div>
+
+  </div>
+
+  <div>
+    <div id="historial">
+      <h3>Historial</h3>
+      <div id="hist-items"></div>
     </div>
   </div>
 
@@ -128,8 +131,10 @@ button:hover { background:#0056b3; }
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-// Estado y mayúsculas
+// Estado
 const state={empresa:"", contacto:"", tamano:0, material:"", texto:""};
+
+// Enter para siguiente campo
 document.querySelectorAll("input,select").forEach(el=>{
   el.addEventListener("keydown", e=>{
     if(e.key==="Enter"){
@@ -139,25 +144,38 @@ document.querySelectorAll("input,select").forEach(el=>{
     }
   });
 });
-function cap(s){ return (s||"").toUpperCase(); }
-empresa.oninput=e=>state.empresa=cap(e.target.value);
-contacto.oninput=e=>state.contacto=cap(e.target.value);
+
+// Mayúsculas
+empresa.oninput=e=>state.empresa=e.target.value.toUpperCase();
+contacto.oninput=e=>state.contacto=e.target.value.toUpperCase();
 tamano.oninput=e=>state.tamano=parseInt(e.target.value)||0;
 material.onchange=e=>state.material=e.target.value;
-texto.oninput=e=>state.texto=cap(e.target.value);
+texto.oninput=e=>state.texto=e.target.value.toUpperCase();
 
-// Cálculos
+// Funciones de cálculo
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
-function precioPorLetra(){ let base=1100; if(state.material==="Acero inoxidable") base+=8000; return state.tamano*base +2000; }
-function totalPrecio(){ return precioPorLetra()*letras(); }
+function precioBase(){
+  let altura=state.tamano; 
+  let p=0;
+  if(altura>=20 && altura<=30) p=1200;
+  else if(altura>=31 && altura<=50) p=1100;
+  else if(altura>=51 && altura<=90) p=1200;
+  if(state.material==="Acero inoxidable") p+=8000;
+  return p;
+}
+function totalPrecio(){ return letras()*precioBase() + letras()*2000; } // +2000 por diseño
 function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("acepto").checked; }
 
-document.getElementById("generarBtn").onclick=function(){
+// Generar presupuesto
+document.getElementById("generarBtn").onclick=generar;
+function generar(){
   if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos y aceptar los términos."); return; }
+
   const fecha=new Date().toLocaleString();
   const cantidad=letras();
-  const precioLetra=precioPorLetra();
+  const precioLetra=precioBase()+2000;
   const total=totalPrecio();
+
   const presupuestoHTML=`
 <div id="print" style="max-width:700px;margin:auto;padding:15px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:15px;">
@@ -188,6 +206,7 @@ document.getElementById("generarBtn").onclick=function(){
     <b>Términos y condiciones:</b> El material se retira en su totalidad por un único punto y una sola vez. Seña del 50%. Deben enviar el archivo. No incluye material ni instalación. Presupuesto válido solo si se cumplen las condiciones.
   </p>
 </div>`;
+
   document.getElementById("resultado").innerHTML=presupuestoHTML;
   document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
 
@@ -196,11 +215,27 @@ document.getElementById("generarBtn").onclick=function(){
   if(historial.length>15) historial=historial.slice(-15);
   localStorage.setItem("historial",JSON.stringify(historial));
   loadHistorial();
-};
+}
 
-function descargar(){ const el=document.getElementById("print"); if(!el){ alert("No hay presupuesto generado"); return; } html2canvas(el,{scale:2}).then(canvas=>{ const a=document.createElement("a"); a.download="presupuesto.png"; a.href=canvas.toDataURL(); a.click(); }); }
-function togglePro(){ const m=document.getElementById("moduloPro"); m.style.display=m.style.display==="block"?"none":"block"; }
+// Descargar
+function descargar(){
+  const el=document.getElementById("print");
+  if(!el){ alert("No hay presupuesto generado"); return; }
+  html2canvas(el,{scale:2}).then(canvas=>{
+    const a=document.createElement("a");
+    a.download="presupuesto.png";
+    a.href=canvas.toDataURL();
+    a.click();
+  });
+}
 
+// Toggle módulo técnico
+function togglePro(){
+  const m=document.getElementById("moduloPro");
+  m.style.display = m.style.display==="block"?"none":"block";
+}
+
+// Cálculo módulo técnico
 function calcularPro(){
   const cantidad=letras(); if(!cantidad) return;
   const desperdicio=parseFloat(document.getElementById("desperdicio").value||0)/100;
@@ -222,16 +257,26 @@ function calcularPro(){
   resultadoPro.innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
 }
 
+// Historial
 function loadHistorial(){
-  const container=document.getElementById("hist-items"); container.innerHTML="";
+  const container=document.getElementById("hist-items");
+  container.innerHTML="";
   let historial=JSON.parse(localStorage.getItem("historial")||"[]");
   historial.slice(-15).reverse().forEach(item=>{
     const div=document.createElement("div");
     div.className="hist-item";
     div.innerHTML=`<b>${item.texto}</b><br>${item.empresa} - ${item.contacto}<br>${item.fecha} - $${item.total}`;
     div.onclick=()=>{
-      state.empresa=item.empresa; state.contacto=item.contacto; state.tamano=item.tamano; state.material=item.material; state.texto=item.texto;
-      const cantidad=letras(); const precioLetra=precioPorLetra(); const total=totalPrecio(); const fecha=item.fecha;
+      state.empresa=item.empresa;
+      state.contacto=item.contacto;
+      state.tamano=item.tamano;
+      state.material=item.material;
+      state.texto=item.texto;
+
+      const cantidad=letras();
+      const precioLetra=precioBase()+2000;
+      const total=totalPrecio();
+      const fecha=item.fecha;
       const presupuestoHTML=`
 <div id="print" style="max-width:700px;margin:auto;padding:15px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:15px;">
@@ -257,6 +302,10 @@ function loadHistorial(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:15px;">
+    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
+    <b>Términos y condiciones:</b> El material se retira en su totalidad por un único punto y una sola vez. Seña del 50%. Deben enviar el archivo. No incluye material ni instalación. Presupuesto válido solo si se cumplen las condiciones.
+  </p>
 </div>`;
       document.getElementById("resultado").innerHTML=presupuestoHTML;
       document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
@@ -266,8 +315,11 @@ function loadHistorial(){
 }
 
 loadHistorial();
+
+// Modal términos
 function abrirTerminos(){ document.getElementById("modalOverlay").style.display="flex"; }
 function cerrarTerminos(){ document.getElementById("modalOverlay").style.display="none"; }
+
 </script>
 </body>
 </html>
