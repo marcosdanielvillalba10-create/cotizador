@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Cotizador Corpóreos</title>
-
 <style>
 * { box-sizing:border-box; font-family:Arial,sans-serif; }
 body { margin:0; padding:0; background:#f4f6f8; }
@@ -15,15 +14,15 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; } /* altura ajustada para 5 ítems */
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; } /* altura ajustada para 5 ítems visibles */
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
 #resultado { margin-top:20px; }
-#btnCalcular { margin-top:10px; width:100%; }
+#btnCalcular { margin-top:10px; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
-  #btnCalcular { margin-top:5px; }
+  #btnCalcular { width:100%; }
 }
 </style>
 </head>
@@ -32,9 +31,7 @@ button:hover { background:#218838; }
 <div class="contenedor">
 
   <div class="main">
-
     <img src="logo.png" class="logo">
-
     <h2>Calculador estimativo de costos</h2>
     <p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
 
@@ -59,40 +56,41 @@ button:hover { background:#218838; }
     </div>
 
     <div id="resultado"></div>
-
   </div>
 
-  <div id="historial">
-    <h3>Historial</h3>
-    <div id="hist-items"></div>
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <div id="historial">
+      <h3>Historial</h3>
+      <div id="hist-items"></div>
+    </div>
     <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
   </div>
 
 </div>
 
 <div id="moduloPro">
-  <h3>Estimación técnica</h3>
-  <select id="frente">
-    <option>Acrílico</option>
-    <option>Chapa</option>
-  </select>
+<h3>Estimación técnica</h3>
+<select id="frente">
+<option>Acrílico</option>
+<option>Chapa</option>
+</select>
 
-  <select id="base">
-    <option>Contraletra</option>
-    <option>Patitas</option>
-  </select>
+<select id="base">
+<option>Contraletra</option>
+<option>Patitas</option>
+</select>
 
-  <select id="iluminacion">
-    <option>Sin luz</option>
-    <option>Frontal</option>
-    <option>Retro</option>
-  </select>
+<select id="iluminacion">
+<option>Sin luz</option>
+<option>Frontal</option>
+<option>Retro</option>
+</select>
 
-  <input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
-  <input id="densidad" type="number" value="35" placeholder="Densidad LED">
+<input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
+<input id="densidad" type="number" value="35" placeholder="Densidad LED">
 
-  <button onclick="calcularPro()">Calcular</button>
-  <div id="resultadoPro"></div>
+<button onclick="calcularPro()">Calcular</button>
+<div id="resultadoPro"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -110,7 +108,6 @@ document.querySelectorAll("input,select").forEach(el=>{
 });
 
 const cap=s=>s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
-
 empresa.oninput=e=>state.empresa=cap(e.target.value);
 contacto.oninput=e=>state.contacto=cap(e.target.value);
 tamano.oninput=e=>state.tamano=parseInt(e.target.value)||0;
@@ -168,6 +165,9 @@ function generar(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
+  </p>
 </div>`;
 
   document.getElementById("resultado").innerHTML=presupuestoHTML;
