@@ -15,7 +15,7 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:500px; overflow-y:auto; }
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; } /* altura ajustada para 5 ítems */
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
 #resultado { margin-top:20px; }
@@ -57,8 +57,6 @@ button:hover { background:#218838; }
 <button onclick="descargar()">Descargar presupuesto</button>
 </div>
 
-<div id="resultado"></div>
-
 <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
 
 <div id="moduloPro">
@@ -85,6 +83,8 @@ button:hover { background:#218838; }
 <button onclick="calcularPro()">Calcular</button>
 <div id="resultadoPro"></div>
 </div>
+
+<div id="resultado"></div>
 
 </div>
 
@@ -174,7 +174,7 @@ function generar(){
   document.getElementById("resultado").innerHTML=presupuestoHTML;
   document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
 
-  // guardar en historial localStorage
+  // historial local
   let historial=JSON.parse(localStorage.getItem("historial")||"[]");
   historial.push({empresa:state.empresa,contacto:state.contacto,tamano:state.tamano,material:state.material,texto:state.texto,fecha,precioLetra,total});
   if(historial.length>15) historial=historial.slice(-15);
@@ -228,13 +228,13 @@ function loadHistorial(){
     div.className="hist-item";
     div.innerHTML=`<b>${item.texto}</b><br>${item.empresa} - ${item.contacto}<br>${item.fecha} - $${item.total}`;
     div.onclick=()=>{
-      // restaurar estado
       state.empresa=item.empresa;
       state.contacto=item.contacto;
       state.tamano=item.tamano;
       state.material=item.material;
       state.texto=item.texto;
-      // generar presupuesto y centrar
+
+      // mostrar presupuesto centrado
       const cantidad=letras();
       const precioLetra=precioBase();
       const total=totalPrecio();
@@ -273,7 +273,6 @@ function loadHistorial(){
 }
 
 loadHistorial();
-
 </script>
 </body>
 </html>
