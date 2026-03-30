@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Cotizador Corpóreos</title>
-
 <style>
 * { box-sizing:border-box; font-family:Arial,sans-serif; }
 body { margin:0; padding:0; background:#f4f6f8; }
@@ -15,19 +14,20 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; } 
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:300px; overflow-y:auto; }
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
 #resultado { margin-top:20px; }
-#btnCalcular { margin-top:10px; width:100%; }
-#checkbox-container { margin-top:10px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
-#modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
-#modal-content { background:white; padding:20px; max-width:500px; max-height:80%; overflow-y:auto; border-radius:8px; }
-#modal-content h3 { margin-top:0; }
-#cerrarModal { cursor:pointer; color:#007bff; text-decoration:underline; font-size:12px; }
+#btnCalcular { width:100%; padding:10px; margin-top:10px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; }
+#btnCalcular:hover { background:#218838; }
+.checkbox-container { display:flex; align-items:center; gap:5px; margin-top:10px; }
+.checkbox-container label { font-size:14px; }
+.checkbox-container button { font-size:12px; background:none; border:none; color:#007bff; cursor:pointer; padding:0; text-decoration:underline; }
+.terminos-texto { display:none; background:#f1f1f1; padding:10px; border-radius:6px; margin-top:5px; font-size:12px; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
+  #btnCalcular { width:100%; }
 }
 </style>
 </head>
@@ -35,89 +35,75 @@ button:hover { background:#218838; }
 
 <div class="contenedor">
 
-<div class="main">
+  <div class="main">
+    <img src="logo.png" class="logo">
 
-<img src="logo.png" class="logo">
+    <h2>Calculador estimativo de costos</h2>
+    <p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
 
-<h2>Calculador estimativo de costos</h2>
-<p style="text-align:center;font-size:13px;">Presupuesto estimativo de fabricación. No incluye instalación ni materiales.</p>
+    <h3>Datos del cliente</h3>
+    <input id="empresa" placeholder="Empresa" data-next="contacto">
+    <input id="contacto" placeholder="Responsable" data-next="tamano">
 
-<h3>Datos del cliente</h3>
-<input id="empresa" placeholder="Empresa" data-next="contacto">
-<input id="contacto" placeholder="Responsable" data-next="tamano">
+    <h3>Datos del trabajo</h3>
+    <input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
 
-<h3>Datos del trabajo</h3>
-<input id="tamano" type="number" placeholder="Altura en cm" data-next="material">
+    <select id="material" data-next="texto">
+      <option value="">Material</option>
+      <option>Chapa galvanizada</option>
+      <option>Acero inoxidable</option>
+    </select>
 
-<select id="material" data-next="texto">
-<option value="">Material</option>
-<option>Chapa galvanizada</option>
-<option>Acero inoxidable</option>
-</select>
+    <input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
 
-<input id="texto" placeholder="Texto del cartel" data-next="chkBases">
+    <!-- Checkbox términos -->
+    <div class="checkbox-container">
+      <input type="checkbox" id="aceptoTerminos">
+      <label for="aceptoTerminos">He leído y acepto los <button type="button" onclick="toggleTerminos()">términos y condiciones</button></label>
+    </div>
+    <div id="terminos" class="terminos-texto">
+      Se retira el material en su totalidad por un único punto y una sola vez. Deben enviar el archivo para que nosotros lo preparemos para enviar a cortar. No incluye material ni instalación. La seña es del 50%. El presupuesto solo se mantendrá si se cumplen estas condiciones; en caso de cambios o imprevistos se aplicarán cargos adicionales.
+    </div>
 
-<!-- Checkbox obligatorio -->
-<div id="checkbox-container">
-  <input type="checkbox" id="chkBases">
-  <label for="chkBases">He leído y acepto los términos para la fabricación</label>
-  <span id="bases-text" style="color:#007bff; cursor:pointer; font-size:12px; text-decoration:underline;">Términos y condiciones</span>
-</div>
+    <div style="display:flex; gap:10px;">
+      <button id="generarBtn">Generar presupuesto</button>
+      <button onclick="descargar()">Descargar presupuesto</button>
+    </div>
 
-<div style="display:flex; gap:10px; margin-top:10px;">
-  <button id="generarBtn">Generar presupuesto</button>
-  <button onclick="descargar()">Descargar presupuesto</button>
-</div>
+    <div id="moduloPro">
+      <h3>Estimación técnica</h3>
+      <select id="frente">
+        <option>Acrílico</option>
+        <option>Chapa</option>
+      </select>
+      <select id="base">
+        <option>Contraletra</option>
+        <option>Patitas</option>
+      </select>
+      <select id="iluminacion">
+        <option>Sin luz</option>
+        <option>Frontal</option>
+        <option>Retro</option>
+      </select>
+      <input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
+      <input id="densidad" type="number" value="35" placeholder="Densidad LED">
+      <button onclick="calcularPro()">Calcular</button>
+      <div id="resultadoPro"></div>
+    </div>
 
-<div id="resultado"></div>
-
-</div> <!-- fin main -->
-
-<div id="historial">
-<h3>Historial</h3>
-<div id="hist-items"></div>
-</div>
-
-<button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
-
-<div id="moduloPro">
-<h3>Estimación técnica</h3>
-<select id="frente">
-<option>Acrílico</option>
-<option>Chapa</option>
-</select>
-
-<select id="base">
-<option>Contraletra</option>
-<option>Patitas</option>
-</select>
-
-<select id="iluminacion">
-<option>Sin luz</option>
-<option>Frontal</option>
-<option>Retro</option>
-</select>
-
-<input id="desperdicio" type="number" value="15" placeholder="Desperdicio %">
-<input id="densidad" type="number" value="35" placeholder="Densidad LED">
-
-<button onclick="calcularPro()">Calcular</button>
-<div id="resultadoPro"></div>
-</div>
-
-<!-- Modal de términos -->
-<div id="modal">
-  <div id="modal-content">
-    <h3>Términos y condiciones</h3>
-    <p>
-    El material se retira en su totalidad por un único punto y una sola vez.<br>
-    Seña del 50%.<br>
-    Deben enviar el archivo para que nosotros lo preparemos para enviar a cortar.<br>
-    No incluye material ni instalación.<br>
-    El presupuesto solo se mantendrá si se cumplen estas condiciones. En caso de cambios o imprevistos se aplicarán cargos adicionales.
-    </p>
-    <span id="cerrarModal">Cerrar</span>
+    <div id="resultado"></div>
   </div>
+
+  <!-- Historial al costado -->
+  <div style="display:flex; flex-direction:column;">
+    <div id="historial">
+      <h3>Historial</h3>
+      <div id="hist-items"></div>
+    </div>
+    <!-- Botón Calcular materiales debajo del historial -->
+    <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -144,7 +130,6 @@ texto.oninput=e=>state.texto=e.target.value.toUpperCase();
 
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
-// Precio base por letra según tamaño y material
 function precioBase(){
   let altura=state.tamano; let p=0;
   if(altura>=20 && altura<=30) p=1200;
@@ -154,11 +139,12 @@ function precioBase(){
   return p;
 }
 
-// Precio total por letra + adicional de diseño 2000 por letra
-function totalPrecio(){ return letras()*(precioBase()+2000); }
+function totalPrecio(){
+  return letras()*(precioBase()+2000); // +2000 por letra de diseño
+}
 
 function ok(){ 
-  return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("chkBases").checked; 
+  return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("aceptoTerminos").checked;
 }
 
 document.getElementById("generarBtn").onclick=generar;
@@ -169,7 +155,7 @@ function generar(){
   const fecha=new Date().toLocaleString();
   const id="P-"+Math.floor(Math.random()*99999);
   const cantidad=letras();
-  const precioLetra=precioBase()+2000; // incluir adicional diseño
+  const precioLetra=precioBase()+2000;
   const total=totalPrecio();
 
   const presupuestoHTML=`
@@ -199,7 +185,7 @@ function generar(){
   </div>
   <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
     Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
-    El presupuesto solo se mantiene si se cumplen los <b>términos y condiciones</b>.
+    Se aplican los términos y condiciones.
   </p>
 </div>`;
 
@@ -266,6 +252,7 @@ function loadHistorial(){
       state.material=item.material;
       state.texto=item.texto;
 
+      // mostrar presupuesto centrado
       const cantidad=letras();
       const precioLetra=precioBase()+2000;
       const total=totalPrecio();
@@ -297,7 +284,7 @@ function loadHistorial(){
   </div>
   <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
     Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
-    El presupuesto solo se mantiene si se cumplen los <b>términos y condiciones</b>.
+    Se aplican los términos y condiciones.
   </p>
 </div>`;
       document.getElementById("resultado").innerHTML=presupuestoHTML;
@@ -307,12 +294,12 @@ function loadHistorial(){
   });
 }
 
+function toggleTerminos(){
+  const t=document.getElementById("terminos");
+  t.style.display = t.style.display==="block"?"none":"block";
+}
+
 loadHistorial();
-
-// Modal
-document.getElementById("bases-text").onclick = () => document.getElementById("modal").style.display = "flex";
-document.getElementById("cerrarModal").onclick = () => document.getElementById("modal").style.display = "none";
-
 </script>
 </body>
 </html>
