@@ -12,9 +12,9 @@ body { margin:0; padding:0; background:#f9f9fb; color:#333; }
 .main { flex:1; background:#fff; padding:20px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); }
 .logo { display:block; margin:0 auto 20px auto; width:240px; }
 h2,h3 { text-align:center; margin:15px 0; }
-input,select { width:100%; padding:6px; margin-top:4px; border:1px solid #ccc; border-radius:6px; transition: border 0.2s; font-size:14px; }
+input,select { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:6px; transition: border 0.2s; font-size:14px; text-transform: uppercase; }
 input:focus, select:focus { border-color:#007bff; outline:none; }
-button { cursor:pointer; border:none; border-radius:6px; padding:10px; margin-top:10px; transition: background 0.2s; font-size:14px; }
+button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-top:10px; transition: background 0.2s; font-size:14px; }
 #generarBtn, #descargarBtn, #btnCalcular { background:#007bff; color:#fff; width:100%; }
 #generarBtn:hover, #descargarBtn:hover, #btnCalcular:hover { background:#0056b3; }
 #btnCalcular { font-size:16px; }
@@ -129,8 +129,10 @@ button { cursor:pointer; border:none; border-radius:6px; padding:10px; margin-to
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-const state={empresa:"", contacto:"", tamano:"", material:"", texto:""};
+// Estado
+const state = {empresa:"", contacto:"", tamano:"", material:"", texto:""};
 
+// Enter para pasar al siguiente
 document.querySelectorAll("input,select").forEach(el=>{
   el.addEventListener("keydown", e=>{
     if(e.key==="Enter"){
@@ -141,22 +143,20 @@ document.querySelectorAll("input,select").forEach(el=>{
   });
 });
 
-const cap=s=>s.toLowerCase().replace(/\b\w/g,l=>l.toUpperCase());
-empresa.oninput=e=>state.empresa=cap(e.target.value);
-contacto.oninput=e=>state.contacto=cap(e.target.value);
-tamano.oninput=e=>state.tamano=parseInt(e.target.value)||0;
-material.onchange=e=>state.material=e.target.value;
-texto.oninput=e=>state.texto=e.target.value.toUpperCase();
+// Forzar mayúsculas
+empresa.oninput = e => state.empresa = e.target.value.toUpperCase();
+contacto.oninput = e => state.contacto = e.target.value.toUpperCase();
+texto.oninput = e => state.texto = e.target.value.toUpperCase();
 
+// Funciones de cálculo
 function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
 
 function precioBase(){
-  let altura = state.tamano;
-  let p = 0;
-  if(altura >= 20 && altura <= 30) p = 1200;
-  else if(altura >= 31 && altura <= 50) p = 1100;
-  else if(altura >= 51 && altura <= 90) p = 1200;
-  if(state.material === "Acero inoxidable") p += 8000;
+  let altura = state.tamano; let p = 0;
+  if(altura>=20 && altura<=30) p=1200;
+  else if(altura>=31 && altura<=50) p=1100;
+  else if(altura>=51 && altura<=90) p=1200;
+  if(state.material==="Acero inoxidable") p+=8000;
   return p;
 }
 
@@ -164,20 +164,22 @@ function totalPrecio(){
   const cantidad = letras();
   const altura = state.tamano;
   const precio = precioBase();
-  return (precio * altura * cantidad) + (2000 * cantidad);
+  return (altura * precio * cantidad) + (2000 * cantidad);
 }
 
-function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("acepto").checked; }
+function ok(){ 
+  return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("acepto").checked; 
+}
 
-document.getElementById("generarBtn").onclick=generar;
-
+// Generar presupuesto
+document.getElementById("generarBtn").onclick = generar;
 function generar(){
   if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos y aceptar los términos."); return; }
 
-  const fecha=new Date().toLocaleString();
-  const cantidad=letras();
-  const precioLetra=precioBase();
-  const total=totalPrecio();
+  const fecha = new Date().toLocaleString();
+  const cantidad = letras();
+  const precioLetra = precioBase() + 2000;
+  const total = totalPrecio();
 
   const presupuestoHTML=`
 <div id="print" style="max-width:700px;margin:auto;padding:15px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
@@ -210,16 +212,17 @@ function generar(){
   </p>
 </div>`;
 
-  document.getElementById("resultado").innerHTML=presupuestoHTML;
+  document.getElementById("resultado").innerHTML = presupuestoHTML;
   document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
 
-  let historial=JSON.parse(localStorage.getItem("historial")||"[]");
-  historial.push({empresa:state.empresa,contacto:state.contacto,tamano:state.tamano,material:state.material,texto:state.texto,fecha,total});
+  let historial = JSON.parse(localStorage.getItem("historial")||"[]");
+  historial.push({empresa:state.empresa, contacto:state.contacto, tamano:state.tamano, material:state.material, texto:state.texto, fecha, total});
   if(historial.length>15) historial=historial.slice(-15);
-  localStorage.setItem("historial",JSON.stringify(historial));
+  localStorage.setItem("historial", JSON.stringify(historial));
   loadHistorial();
 }
 
+// Descargar
 function descargar(){
   const el=document.getElementById("print");
   if(!el){ alert("No hay presupuesto generado"); return; }
@@ -231,11 +234,8 @@ function descargar(){
   });
 }
 
-function togglePro(){
-  const m=document.getElementById("moduloPro");
-  m.style.display = m.style.display==="block"?"none":"block";
-}
-
+// Modulo Pro
+function togglePro(){ const m=document.getElementById("moduloPro"); m.style.display = m.style.display==="block"?"none":"block"; }
 function calcularPro(){
   const cantidad=letras(); if(!cantidad) return;
   const desperdicio=parseFloat(document.getElementById("desperdicio").value||0)/100;
@@ -257,6 +257,7 @@ function calcularPro(){
   resultadoPro.innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
 }
 
+// Historial
 function loadHistorial(){
   const container=document.getElementById("hist-items");
   container.innerHTML="";
@@ -273,7 +274,7 @@ function loadHistorial(){
       state.texto=item.texto;
 
       const cantidad=letras();
-      const precioLetra=precioBase();
+      const precioLetra=precioBase()+2000;
       const total=totalPrecio();
       const fecha=item.fecha;
       const presupuestoHTML=`
@@ -315,6 +316,7 @@ function loadHistorial(){
 
 loadHistorial();
 
+// Modal
 function abrirTerminos(){ document.getElementById("modalOverlay").style.display="flex"; }
 function cerrarTerminos(){ document.getElementById("modalOverlay").style.display="none"; }
 </script>
