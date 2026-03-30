@@ -15,11 +15,15 @@ input,select,button { width:100%; padding:8px; margin-top:5px; border:1px solid 
 button { cursor:pointer; background:#28a745; color:white; border:none; border-radius:6px; padding:12px; margin-top:10px; }
 button:hover { background:#218838; }
 #moduloPro { display:none; margin-top:15px; padding:10px; background:#f1f1f1; border-radius:6px; }
-#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:calc(5*80px + 40px); overflow-y:auto; } /* altura para mostrar 5 ítems */
+#historial { width:300px; background:#fff; padding:15px; border-radius:10px; height:400px; overflow-y:auto; } /* altura para mostrar 5 ítems */
 .hist-item { padding:10px; margin-bottom:10px; background:#f4f4f4; border-radius:6px; cursor:pointer; }
 .hist-item:hover { background:#e0e0e0; }
 #resultado { margin-top:20px; }
-#btnCalcular { margin-top:10px; }
+#btnCalcular { margin-top:10px; width:100%; }
+#checkbox-container { display:flex; align-items:center; gap:10px; margin-top:10px; }
+#bases-text { background:#ffeb3b; padding:5px 10px; border-radius:6px; cursor:pointer; font-weight:bold; }
+#modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+#modal-content { background:#fff; padding:20px; border-radius:8px; max-width:500px; max-height:70%; overflow-y:auto; }
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
@@ -51,6 +55,11 @@ button:hover { background:#218838; }
 </select>
 
 <input id="texto" placeholder="Texto del cartel" data-next="generarBtn">
+
+<div id="checkbox-container">
+  <input type="checkbox" id="chkBases">
+  <span id="bases-text">Bases y condiciones</span>
+</div>
 
 <div style="display:flex; gap:10px;">
 <button id="generarBtn">Generar presupuesto</button>
@@ -92,6 +101,20 @@ button:hover { background:#218838; }
 <div id="resultadoPro"></div>
 </div>
 
+<div id="modal">
+  <div id="modal-content">
+    <h3>Bases y condiciones</h3>
+    <p>
+    El material se retira en su totalidad por un único punto y una sola vez.<br>
+    Seña del 50%.<br>
+    Deben enviar el archivo para que nosotros lo preparemos para enviar a cortar.<br>
+    No incluye material ni instalación.<br>
+    El presupuesto solo se mantiene si se cumplen las condiciones; en caso de algún cambio o imprevisto se aplicarán cargos.
+    </p>
+    <button onclick="cerrarModal()">Cerrar</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 const state={empresa:"", contacto:"", tamano:"", material:"", texto:""};
@@ -122,28 +145,35 @@ function precioBase(){
   else if(altura>=31 && altura<=50) p=1100;
   else if(altura>=51 && altura<=90) p=1200;
   if(state.material==="Acero inoxidable") p+=8000;
-  return p;
+  // agregar 2000 por letra de diseño
+  return p + 2000;
 }
 
-// precio por letra completo: precio base * altura + 2000 por diseño
-function precioPorLetra(){
-  return (precioBase() * state.tamano) + 2000;
-}
+function totalPrecio(){ return letras()*precioBase(); }
 
-function totalPrecio(){ return letras()*precioPorLetra(); }
-
-function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto; }
+function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("chkBases").checked; }
 
 document.getElementById("generarBtn").onclick=generar;
 
+document.getElementById("bases-text").onclick=()=>{document.getElementById("modal").style.display="flex";};
+function cerrarModal(){document.getElementById("modal").style.display="none";}
+
 function generar(){
-  if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos"); return; }
+  if(!ok()){ alert("Para generar el presupuesto debes completar todos los campos y aceptar las bases"); return; }
 
   const fecha=new Date().toLocaleString();
   const id="P-"+Math.floor(Math.random()*99999);
   const cantidad=letras();
-  const precioLetra=precioPorLetra();
+  const precioLetra=precioBase();
   const total=totalPrecio();
+
+  const basesHTML = `<p style="font-size:11px;color:#777;margin-top:10px;">
+  El material se retira en su totalidad por un único punto y una sola vez.<br>
+  Seña del 50%.<br>
+  Deben enviar el archivo para que nosotros lo preparemos para enviar a cortar.<br>
+  No incluye material ni instalación.<br>
+  El presupuesto solo se mantiene si se cumplen las condiciones; en caso de algún cambio o imprevisto se aplicarán cargos.
+  </p>`;
 
   const presupuestoHTML=`
 <div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
@@ -170,7 +200,8 @@ function generar(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
-  <p style="font-size:11px;color:#777;text-align:center;margin-top:20px;">
+  ${basesHTML}
+  <p style="font-size:11px;color:#777;text-align:center;margin-top:10px;">
     Presupuesto estimativo de fabricación. No incluye instalación ni materiales.
   </p>
 </div>`;
@@ -238,17 +269,22 @@ function loadHistorial(){
       state.material=item.material;
       state.texto=item.texto;
 
-      // mostrar presupuesto centrado
       const cantidad=letras();
-      const precioLetra=precioPorLetra();
+      const precioLetra=precioBase();
       const total=totalPrecio();
-      const fecha=item.fecha;
+      const basesHTML = `<p style="font-size:11px;color:#777;margin-top:10px;">
+      El material se retira en su totalidad por un único punto y una sola vez.<br>
+      Seña del 50%.<br>
+      Deben enviar el archivo para que nosotros lo preparemos para enviar a cortar.<br>
+      No incluye material ni instalación.<br>
+      El presupuesto solo se mantiene si se cumplen las condiciones; en caso de algún cambio o imprevisto se aplicarán cargos.
+      </p>`;
       const presupuestoHTML=`
 <div id="print" style="max-width:600px;margin:auto;padding:25px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
   <div style="text-align:center;margin-bottom:20px;">
     <img src="logo.png" style="width:240px;margin-bottom:10px;">
     <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
-    <p style="font-size:12px;color:#666;">${fecha}</p>
+    <p style="font-size:12px;color:#666;">${item.fecha}</p>
   </div>
   <hr>
   <h3 style="font-size:14px;">Datos del cliente</h3>
@@ -268,6 +304,7 @@ function loadHistorial(){
     <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
     <h1 style="margin:5px 0;">$${total}</h1>
   </div>
+  ${basesHTML}
 </div>`;
       document.getElementById("resultado").innerHTML=presupuestoHTML;
       document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
@@ -276,7 +313,6 @@ function loadHistorial(){
   });
 }
 
-// cargar historial al inicio
 loadHistorial();
 </script>
 </body>
