@@ -254,29 +254,42 @@ function togglePro(){
   }
 }
 
+// ------------------- NUEVA FUNCIÓN calcularPro() -------------------
 function calcularPro(){
-  const cantidad=letras(); if(!cantidad) return;
-  const factor=parseFloat(document.getElementById("tipoLetra").value);
-  const desperdicio=parseFloat(document.getElementById("desperdicio").value||0)/100;
-  const densidad=parseFloat(document.getElementById("densidad").value||0);
-  const frente=document.getElementById("frente").value;
-  const iluminacion=document.getElementById("iluminacion").value;
-  const m2=cantidad*factor;
-  const leds=m2*densidad;
+  const texto = state.texto || "";
+  const tamano = state.tamano || 0; // altura en cm
+  if(!texto || !tamano) return;
 
-  let score=100;
-  if(frente==="Chapa") score-=8;
-  if(iluminacion==="Retro") score-=10;
-  if(iluminacion==="Frontal") score-=5;
-  if(desperdicio>0.15) score-=12;
-  if(densidad<30 || densidad>40) score-=15;
-  if(cantidad>50) score-=8;
-  if(score>85) score=85;
-  if(score<45) score=45;
+  const distanciaModulo = 5; // cada 5 cm un módulo
+  let totalLEDs = 0;
 
-  let nivel=score>=80?"Alta":score>=60?"Media":"Baja";
-  resultadoPro.innerHTML=`m²: ${m2.toFixed(2)}<br>LED estimados: ${Math.round(leds)}<br>Con desperdicio: ${(m2*(1+desperdicio)).toFixed(2)} m²<br><br><b>Confiabilidad: ${nivel} (${score}%)</b>`;
+  // Aproximación de longitud de cada letra (cm) según su forma
+  const letrasLongitud = {
+    "A": tamano*2, "B": tamano*2, "C": tamano*1.5, "D": tamano*2, "E": tamano*1.5, "F": tamano*1.5,
+    "G": tamano*1.5, "H": tamano*2, "I": tamano, "J": tamano*1.5, "K": tamano*2, "L": tamano,
+    "M": tamano*5, "N": tamano*3, "O": tamano*3, "P": tamano*2, "Q": tamano*3, "R": tamano*2,
+    "S": tamano*2, "T": tamano*1.5, "U": tamano*2, "V": tamano*2, "W": tamano*3, "X": tamano*2,
+    "Y": tamano*2, "Z": tamano*2
+  };
+
+  for(let l of texto.toUpperCase()){
+    let longitud = letrasLongitud[l] || tamano; // si letra no definida, usar tamano como aproximación
+    let ledsLetra = Math.ceil(longitud / distanciaModulo);
+    totalLEDs += ledsLetra;
+  }
+
+  const desperdicio = parseFloat(document.getElementById("desperdicio").value||0)/100;
+  const ledsConDesperdicio = Math.ceil(totalLEDs * (1 + desperdicio));
+
+  const m2 = (totalLEDs * 0.015).toFixed(2); // referencia área m²
+  resultadoPro.innerHTML = `
+    LED estimados: ${ledsConDesperdicio} <br>
+    Total módulos sin desperdicio: ${totalLEDs} <br>
+    Área aproximada: ${m2} m² <br>
+    Desperdicio aplicado: ${(desperdicio*100).toFixed(1)}%
+  `;
 }
+// ------------------------------------------------------------------
 
 function loadHistorial(){
   const container=document.getElementById("hist-items");
