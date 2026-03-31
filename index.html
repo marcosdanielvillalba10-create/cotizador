@@ -8,7 +8,9 @@
 
 * { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
 body { margin:0; padding:0; background:#f9f9fb; color:#333; }
-.contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; align-items:flex-start; }
+
+.contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; align-items:flex-start; display:none; } /* Oculto inicialmente */
+
 .main { flex:1; background:#fff; padding:20px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); }
 .logo { display:block; margin:0 auto 20px auto; width:240px; }
 h2,h3 { text-align:center; margin:15px 0; }
@@ -34,14 +36,20 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center; z-index:1000; }
 .modal { background:#fff; padding:20px; border-radius:10px; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow:0 5px 20px rgba(0,0,0,0.3); font-size:14px; }
 
+/* Login Overlay */
 #loginOverlay {
-  position:fixed; top:0; left:0; width:100%; height:100%; background:#f9f9fb; display:flex; justify-content:center; align-items:center; z-index:2000;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 9999;
 }
-#loginBox {
-  background:#fff; padding:30px; border-radius:10px; box-shadow:0 5px 20px rgba(0,0,0,0.2); width:300px; text-align:center;
-}
-#loginBox input { margin-top:15px; }
-#loginBox button { margin-top:15px; width:100%; }
+#loginOverlay input { margin-bottom:10px; width:200px; padding:10px; border:1px solid #ccc; border-radius:6px; }
+#loginOverlay button { width:220px; padding:10px; background:#007bff; color:#fff; border:none; border-radius:6px; }
 
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
@@ -52,17 +60,15 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- Login Overlay -->
 <div id="loginOverlay">
-  <div id="loginBox">
-    <img src="logo.png" class="logo">
-    <input type="password" id="loginPassword" placeholder="Contraseña">
-    <button id="loginBtn">Ingresar</button>
-  </div>
+  <h2>Ingrese contraseña</h2>
+  <input id="loginPassword" type="password" placeholder="Contraseña">
+  <button id="loginBtn">Ingresar</button>
 </div>
 
-<!-- CONTENIDO PRINCIPAL -->
-<div class="contenedor" id="mainContent" style="display:none;">
+<!-- Contenido principal -->
+<div class="contenedor" id="mainContent">
 
   <div class="main">
 
@@ -168,20 +174,24 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
-
-// LOGIN
-document.getElementById("loginBtn").onclick = function() {
-  const pw = document.getElementById("loginPassword").value;
-  if(pw === "1234"){
+// Login
+function login() {
+  const pw = document.getElementById("loginPassword").value.trim();
+  if(pw === "1234") {
     document.getElementById("loginOverlay").style.display = "none";
     document.getElementById("mainContent").style.display = "flex";
   } else {
     alert("Contraseña incorrecta");
   }
-};
+}
+document.getElementById("loginBtn").onclick = login;
+document.getElementById("loginPassword").addEventListener("keydown", e=>{
+  if(e.key==="Enter"){ e.preventDefault(); login(); }
+});
 
-// Resto de tu código original
+// Calculadora y demás scripts
+const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
+
 document.querySelectorAll("input,select").forEach(el=>{
   el.addEventListener("keydown", e=>{
     if(e.key==="Enter"){ e.preventDefault(); const next = el.getAttribute("data-next"); if(next) document.getElementById(next)?.focus(); }
@@ -340,5 +350,4 @@ document.getElementById("descargarCompletoBtn").onclick = function() {
     a.click();
     document.body.removeChild(tempDiv);
   }).catch(err => {
-    console.error("Error al generar imagen:", err);
-    alert("Ocurrió un error al generar la imagen
+    console.error("Error al
