@@ -108,25 +108,19 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
       </select>
 
       <!-- NUEVO -->
-      <label style="font-size:13px; margin-top:10px; display:block;">
-        Tipo de tipografía
-      </label>
+      <label style="font-size:13px; margin-top:10px; display:block;">Tipo de tipografía</label>
       <select id="tipoLetra">
         <option value="0.11">Simple</option>
         <option value="0.14" selected>Normal</option>
         <option value="0.18">Compleja</option>
       </select>
 
-      <!-- MEJORADO -->
-      <label style="font-size:13px; margin-top:10px; display:block;">
-        Desperdicio (%)
-      </label>
+      <!-- MEJORADOS -->
+      <label style="font-size:13px; margin-top:10px; display:block;">Desperdicio (%)</label>
       <input id="desperdicio" type="number" value="15">
       <small style="color:#666;">Estándar: 15%</small>
 
-      <label style="font-size:13px; margin-top:10px; display:block;">
-        Densidad LED (por m²)
-      </label>
+      <label style="font-size:13px; margin-top:10px; display:block;">Densidad LED (por m²)</label>
       <input id="densidad" type="number" value="35">
       <small style="color:#666;">Estándar: 35 LED/m²</small>
 
@@ -142,10 +136,12 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 </div>
 
-<!-- SCRIPT ORIGINAL intacto arriba -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-/* SOLO cambio en cálculo */
+/* TODO tu script intacto arriba */
+
+/* SOLO modificación real */
 function calcularPro(){
   const cantidad=letras(); if(!cantidad) return;
 
