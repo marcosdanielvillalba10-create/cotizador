@@ -74,7 +74,7 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
     <div style="display:flex; gap:10px; flex-direction:column;">
       <button id="generarBtn">Generar presupuesto</button>
-      <button id="descargarBtn" onclick="descargar()">Descargar presupuesto</button>
+      <button id="descargarBtn" onclick="descargarPresupuestoCompleto()">Descargar presupuesto completo</button>
     </div>
 
     <div id="resultado"></div>
@@ -233,17 +233,27 @@ function generar(){
   loadHistorial();
 }
 
-function descargar(){
-  const el = document.getElementById("print");
-  if(!el){ alert("No hay presupuesto generado"); return; }
-  html2canvas(el,{scale:2}).then(canvas=>{
+// Función combinada para descargar presupuesto + cálculo LED
+function descargarPresupuestoCompleto(){
+  const printDiv = document.getElementById("print");
+  const proDiv = document.getElementById("resultadoPro");
+  if(!printDiv){ alert("Primero genera presupuesto."); return; }
+
+  const tempDiv = document.createElement("div");
+  tempDiv.style.background="#fff";
+  tempDiv.style.padding="15px";
+  tempDiv.appendChild(printDiv.cloneNode(true));
+  if(proDiv) tempDiv.appendChild(proDiv.cloneNode(true));
+
+  html2canvas(tempDiv,{scale:2}).then(canvas=>{
     const a=document.createElement("a");
-    a.download="presupuesto.png";
+    a.download="presupuesto_completo.png";
     a.href=canvas.toDataURL();
     a.click();
   });
 }
 
+// Toggle módulo Pro y hacer scroll hacia él
 function togglePro(){
   const m=document.getElementById("moduloPro");
   if(m.style.display==="block"){ m.style.display="none"; }
@@ -253,6 +263,7 @@ function togglePro(){
   }
 }
 
+// Calcular estimación técnica
 function calcularPro(){
   const resultadoPro = document.getElementById("resultadoPro");
   const texto = state.texto || "";
@@ -285,30 +296,10 @@ function calcularPro(){
     Total módulos sin desperdicio: ${totalLEDs} <br>
     Área aproximada: ${m2} m² <br>
     Desperdicio aplicado: ${(desperdicio*100).toFixed(1)}%
-    <br><br>
-    <button onclick="descargarPresupuestoCompleto()">Descargar presupuesto completo</button>
   `;
 }
 
-function descargarPresupuestoCompleto(){
-  const printDiv = document.getElementById("print");
-  const proDiv = document.getElementById("resultadoPro");
-  if(!printDiv || !proDiv){ alert("Primero genera presupuesto y cálculo de materiales."); return; }
-
-  const tempDiv = document.createElement("div");
-  tempDiv.style.background="#fff";
-  tempDiv.style.padding="15px";
-  tempDiv.appendChild(printDiv.cloneNode(true));
-  tempDiv.appendChild(proDiv.cloneNode(true));
-
-  html2canvas(tempDiv,{scale:2}).then(canvas=>{
-    const a=document.createElement("a");
-    a.download="presupuesto_completo.png";
-    a.href=canvas.toDataURL();
-    a.click();
-  });
-}
-
+// Historial
 function loadHistorial(){
   const container=document.getElementById("hist-items");
   container.innerHTML="";
