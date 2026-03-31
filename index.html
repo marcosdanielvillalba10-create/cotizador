@@ -15,8 +15,9 @@ h2,h3 { text-align:center; margin:15px 0; }
 input,select { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:6px; transition: border 0.2s; font-size:14px; text-transform:uppercase; }
 input:focus, select:focus { border-color:#007bff; outline:none; }
 button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-top:10px; transition: background 0.2s; font-size:14px; }
-#generarBtn, #btnCalcularPro, #descargarCompletoBtn { background:#007bff; color:#fff; width:100%; }
-#generarBtn:hover, #btnCalcularPro:hover, #descargarCompletoBtn:hover { background:#0056b3; }
+#generarBtn, #descargarBtn, #btnCalcular, #btnCalcularPro { background:#007bff; color:#fff; width:100%; }
+#generarBtn:hover, #descargarBtn:hover, #btnCalcular:hover, #btnCalcularPro:hover { background:#0056b3; }
+#btnCalcular { font-size:16px; }
 
 #moduloPro { display:none; margin-top:10px; padding:15px; background:#f1f1f1; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1); max-width:300px; }
 
@@ -36,6 +37,7 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
   #historial { width:100%; height:200px; order:-1; }
+  #btnCalcular { margin-top:10px; }
 }
 </style>
 </head>
@@ -70,7 +72,9 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
       <span>He leído y acepto los <button class="terminos-btn" onclick="abrirTerminos()">términos y condiciones</button></span>
     </div>
 
-    <button id="generarBtn">Generar presupuesto</button>
+    <div style="display:flex; gap:10px; flex-direction:column;">
+      <button id="generarBtn">Generar presupuesto</button>
+    </div>
 
     <div id="resultado"></div>
 
@@ -81,9 +85,7 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
       <h3>Historial</h3>
       <div id="hist-items"></div>
     </div>
-
     <button id="btnCalcular" onclick="togglePro()">Calcular materiales</button>
-
     <div id="moduloPro">
       <h3>Estimación técnica</h3>
 
@@ -122,8 +124,10 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
       <button id="btnCalcularPro" onclick="calcularPro()">Calcular</button>
       <div id="resultadoPro"></div>
 
-      <!-- Único botón de descarga completo, funciona correctamente -->
-      <button id="descargarCompletoBtn" onclick="descargarPresupuestoCompleto()">Descargar presupuesto completo</button>
+      <!-- Botón funcional agregado aquí, debajo de cálculo de materiales -->
+      <div style="margin-top:10px;">
+        <button id="descargarCompletoBtn">Descargar presupuesto completo</button>
+      </div>
     </div>
   </div>
 
@@ -246,7 +250,7 @@ function calcularPro(){
   const resultadoPro = document.getElementById("resultadoPro");
   const texto = state.texto || "";
   const tamano = state.tamano || 0;
-  if(!texto || !tamano){ resultadoPro.innerHTML=""; return; }
+  if(!texto || !tamano) return;
 
   const distanciaModulo = 5; 
   let totalLEDs = 0;
@@ -277,26 +281,39 @@ function calcularPro(){
   `;
 }
 
-function descargarPresupuestoCompleto(){
+document.getElementById("descargarCompletoBtn").onclick = function() {
   const printDiv = document.getElementById("print");
   const proDiv = document.getElementById("resultadoPro");
 
-  if(!printDiv){ alert("Primero genera el presupuesto de fabricación."); return; }
-  if(!proDiv || proDiv.innerHTML.trim()===""){ alert("Primero realiza el cálculo de materiales."); return; }
+  if (!printDiv) {
+    alert("Primero genera el presupuesto de fabricación.");
+    return;
+  }
+  if (!proDiv || proDiv.innerHTML.trim() === "") {
+    alert("Primero realiza el cálculo de materiales.");
+    return;
+  }
 
   const tempDiv = document.createElement("div");
-  tempDiv.style.background="#fff";
-  tempDiv.style.padding="15px";
+  tempDiv.style.background = "#fff";
+  tempDiv.style.padding = "15px";
+  tempDiv.style.position = "absolute";
+  tempDiv.style.left = "-9999px"; // fuera de pantalla
   tempDiv.appendChild(printDiv.cloneNode(true));
   tempDiv.appendChild(proDiv.cloneNode(true));
+  document.body.appendChild(tempDiv);
 
-  html2canvas(tempDiv,{scale:2}).then(canvas=>{
-    const a=document.createElement("a");
-    a.download="presupuesto_completo.png";
-    a.href=canvas.toDataURL();
+  html2canvas(tempDiv, { scale: 2 }).then(canvas => {
+    const a = document.createElement("a");
+    a.download = "presupuesto_completo.png";
+    a.href = canvas.toDataURL("image/png");
     a.click();
+    document.body.removeChild(tempDiv);
+  }).catch(err => {
+    console.error("Error al generar imagen:", err);
+    alert("Ocurrió un error al generar la imagen.");
   });
-}
+};
 
 function loadHistorial(){
   const container=document.getElementById("hist-items");
