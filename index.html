@@ -9,8 +9,7 @@
 * { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
 body { margin:0; padding:0; background:#f9f9fb; color:#333; }
 
-.contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; align-items:flex-start; display:none; } /* Oculto inicialmente */
-
+.contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; align-items:flex-start; }
 .main { flex:1; background:#fff; padding:20px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); }
 .logo { display:block; margin:0 auto 20px auto; width:240px; }
 h2,h3 { text-align:center; margin:15px 0; }
@@ -36,20 +35,13 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center; z-index:1000; }
 .modal { background:#fff; padding:20px; border-radius:10px; max-width:400px; max-height:80vh; overflow-y:auto; box-shadow:0 5px 20px rgba(0,0,0,0.3); font-size:14px; }
 
-/* Login Overlay */
 #loginOverlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  z-index: 9999;
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:2000;
 }
-#loginOverlay input { margin-bottom:10px; width:200px; padding:10px; border:1px solid #ccc; border-radius:6px; }
-#loginOverlay button { width:220px; padding:10px; background:#007bff; color:#fff; border:none; border-radius:6px; }
+#loginBox { background:#fff; padding:25px; border-radius:10px; text-align:center; width:300px; box-shadow:0 5px 15px rgba(0,0,0,0.3); }
+#loginBox input { width:100%; padding:10px; margin:10px 0; }
+#loginBox button { width:100%; padding:10px; }
 
 @media(max-width:900px){
   .contenedor { flex-direction:column; }
@@ -60,15 +52,18 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 </head>
 <body>
 
-<!-- Login Overlay -->
+<!-- LOGIN OVERLAY -->
 <div id="loginOverlay">
-  <h2>Ingrese contraseña</h2>
-  <input id="loginPassword" type="password" placeholder="Contraseña">
-  <button id="loginBtn">Ingresar</button>
+  <div id="loginBox">
+    <h2>Acceso restringido</h2>
+    <input type="password" id="loginPassword" placeholder="Contraseña">
+    <button id="loginBtn">Ingresar</button>
+    <p style="font-size:12px;color:red;" id="loginError" hidden>Contraseña incorrecta</p>
+  </div>
 </div>
 
-<!-- Contenido principal -->
-<div class="contenedor" id="mainContent">
+<!-- CONTENIDO PRINCIPAL -->
+<div id="mainContent" style="display:none" class="contenedor">
 
   <div class="main">
 
@@ -174,180 +169,152 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-// Login
-function login() {
-  const pw = document.getElementById("loginPassword").value.trim();
-  if(pw === "1234") {
-    document.getElementById("loginOverlay").style.display = "none";
-    document.getElementById("mainContent").style.display = "flex";
+// LOGIN FUNCIONAL
+const PASSWORD = "1234"; // cambiar por la contraseña deseada
+const loginOverlay = document.getElementById("loginOverlay");
+const mainContent = document.getElementById("mainContent");
+const loginBtn = document.getElementById("loginBtn");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+
+loginBtn.onclick = function(){
+  if(loginPassword.value === PASSWORD){
+    loginOverlay.style.display = "none";
+    mainContent.style.display = "flex";
+    inicializarCotizador(); // inicializa eventos del cotizador
   } else {
-    alert("Contraseña incorrecta");
+    loginError.hidden = false;
   }
-}
-document.getElementById("loginBtn").onclick = login;
-document.getElementById("loginPassword").addEventListener("keydown", e=>{
-  if(e.key==="Enter"){ e.preventDefault(); login(); }
-});
+};
 
-// Calculadora y demás scripts
-const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
+// FUNCIONES DEL COTIZADOR (lo mismo que tu código original, encapsulado en una función)
+function inicializarCotizador(){
+  const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
 
-document.querySelectorAll("input,select").forEach(el=>{
-  el.addEventListener("keydown", e=>{
-    if(e.key==="Enter"){ e.preventDefault(); const next = el.getAttribute("data-next"); if(next) document.getElementById(next)?.focus(); }
+  document.querySelectorAll("input,select").forEach(el=>{
+    el.addEventListener("keydown", e=>{
+      if(e.key==="Enter"){ e.preventDefault(); const next = el.getAttribute("data-next"); if(next) document.getElementById(next)?.focus(); }
+    });
   });
-});
 
-const cap = s => s.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-empresa.oninput = e => state.empresa = cap(e.target.value);
-contacto.oninput = e => state.contacto = cap(e.target.value);
-tamano.oninput = e => state.tamano = parseInt(e.target.value)||0;
-material.onchange = e => state.material = e.target.value;
-texto.oninput = e => state.texto = e.target.value.toUpperCase();
+  const cap = s => s.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  empresa.oninput = e => state.empresa = cap(e.target.value);
+  contacto.oninput = e => state.contacto = cap(e.target.value);
+  tamano.oninput = e => state.tamano = parseInt(e.target.value)||0;
+  material.onchange = e => state.material = e.target.value;
+  texto.oninput = e => state.texto = e.target.value.toUpperCase();
 
-function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
-
-function precioBase() {
-  let altura = state.tamano;
-  let p = 0;
-  if (altura >= 20 && altura <= 30) p = 1200;
-  else if (altura >= 31 && altura <= 50) p = 1100;
-  else if (altura >= 51 && altura <= 90) p = 1200;
-  return p;
-}
-
-function precioPorLetra() {
-  let precio = precioBase() * state.tamano + 2000;
-  if (state.material === "Acero inoxidable") precio += 8000;
-  return precio;
-}
-
-function totalPrecio() {
-  return letras() * precioPorLetra();
-}
-
-function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("acepto").checked; }
-
-document.getElementById("generarBtn").onclick = generar;
-
-function generar(){
-  if(!ok()){ alert("Completa todos los campos y acepta términos."); return; }
-
-  const fecha = new Date().toLocaleString();
-  const cantidad = letras();
-  const precioLetra = precioPorLetra();
-  const total = totalPrecio();
-
-  const presupuestoHTML = `<div id="print" style="max-width:700px;margin:auto;padding:15px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
-  <div style="text-align:center;margin-bottom:15px;">
-    <img src="logo.png" style="width:240px;margin-bottom:10px;">
-    <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
-    <p style="font-size:12px;color:#666;">${fecha}</p>
-  </div>
-  <hr>
-  <h3 style="font-size:14px;">Datos del cliente</h3>
-  <p><b>Empresa:</b> ${state.empresa}</p>
-  <p><b>Responsable:</b> ${state.contacto}</p>
-  <hr>
-  <h3 style="font-size:14px;">Características del trabajo</h3>
-  <p><b>Altura:</b> ${state.tamano} cm</p>
-  <p><b>Material:</b> ${state.material}</p>
-  <p><b>Texto:</b> ${state.texto}</p>
-  <hr>
-  <div style="text-align:right;">
-    <p>Cantidad letras: <b>${cantidad}</b></p>
-    <p>Precio por letra: <b>$${precioLetra}</b></p>
-  </div>
-  <div style="margin-top:15px;padding:10px;background:#f4f6f8;text-align:center;border-radius:8px;">
-    <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
-    <h1 style="margin:5px 0;">$${total}</h1>
-  </div>
-  <p style="font-size:11px;color:#777;text-align:center;margin-top:15px;">
-    Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
-    <b>Términos y condiciones:</b> El material se retira en su totalidad por un único punto y una sola vez. Seña del 50%. Deben enviar el archivo. No incluye material ni instalación. Presupuesto válido solo si se cumplen las condiciones.
-  </p></div>`;
-
-  document.getElementById("resultado").innerHTML = presupuestoHTML;
-  document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
-
-  let historial = JSON.parse(localStorage.getItem("historial")||"[]");
-  historial.push({empresa: state.empresa, contacto: state.contacto, tamano: state.tamano, material: state.material, texto: state.texto, fecha, total});
-  if(historial.length>15) historial = historial.slice(-15);
-  localStorage.setItem("historial", JSON.stringify(historial));
-  loadHistorial();
-}
-
-function togglePro(){
-  const m=document.getElementById("moduloPro");
-  if(m.style.display==="block"){ m.style.display="none"; }
-  else { 
-    m.style.display="block"; 
-    m.scrollIntoView({behavior:"smooth", block:"start"});
+  function letras(){ return (state.texto||"").replace(/\s/g,"").length; }
+  function precioBase() {
+    let altura = state.tamano;
+    let p = 0;
+    if (altura >= 20 && altura <= 30) p = 1200;
+    else if (altura >= 31 && altura <= 50) p = 1100;
+    else if (altura >= 51 && altura <= 90) p = 1200;
+    return p;
   }
-}
+  function precioPorLetra() {
+    let precio = precioBase() * state.tamano + 2000;
+    if (state.material === "Acero inoxidable") precio += 8000;
+    return precio;
+  }
+  function totalPrecio() { return letras() * precioPorLetra(); }
+  function ok(){ return state.empresa && state.contacto && state.tamano && state.material && state.texto && document.getElementById("acepto").checked; }
 
-function calcularPro(){
-  const resultadoPro = document.getElementById("resultadoPro");
-  const texto = state.texto || "";
-  const tamano = state.tamano || 0;
-  if(!texto || !tamano) return;
+  document.getElementById("generarBtn").onclick = generar;
 
-  const distanciaModulo = 5; 
-  let totalLEDs = 0;
+  function generar(){
+    if(!ok()){ alert("Completa todos los campos y acepta términos."); return; }
 
-  const letrasLongitud = {
-    "A": tamano*2, "B": tamano*2, "C": tamano*1.5, "D": tamano*2, "E": tamano*1.5, "F": tamano*1.5,
-    "G": tamano*1.5, "H": tamano*2, "I": tamano, "J": tamano*1.5, "K": tamano*2, "L": tamano,
-    "M": tamano*5, "N": tamano*3, "O": tamano*3, "P": tamano*2, "Q": tamano*3, "R": tamano*2,
-    "S": tamano*2, "T": tamano*1.5, "U": tamano*2, "V": tamano*2, "W": tamano*3, "X": tamano*2,
-    "Y": tamano*2, "Z": tamano*2
-  };
+    const fecha = new Date().toLocaleString();
+    const cantidad = letras();
+    const precioLetra = precioPorLetra();
+    const total = totalPrecio();
 
-  for(let l of texto.toUpperCase()){
-    let longitud = letrasLongitud[l] || tamano;
-    let ledsLetra = Math.ceil(longitud / distanciaModulo);
-    totalLEDs += ledsLetra;
+    const presupuestoHTML = `<div id="print" style="max-width:700px;margin:auto;padding:15px;background:#fff;border:1px solid #eee;font-family:Arial;color:#111;">
+    <div style="text-align:center;margin-bottom:15px;">
+      <img src="logo.png" style="width:240px;margin-bottom:10px;">
+      <h2 style="margin:0;">PRESUPUESTO DE FABRICACIÓN</h2>
+      <p style="font-size:12px;color:#666;">${fecha}</p>
+    </div>
+    <hr>
+    <h3 style="font-size:14px;">Datos del cliente</h3>
+    <p><b>Empresa:</b> ${state.empresa}</p>
+    <p><b>Responsable:</b> ${state.contacto}</p>
+    <hr>
+    <h3 style="font-size:14px;">Características del trabajo</h3>
+    <p><b>Altura:</b> ${state.tamano} cm</p>
+    <p><b>Material:</b> ${state.material}</p>
+    <p><b>Texto:</b> ${state.texto}</p>
+    <hr>
+    <div style="text-align:right;">
+      <p>Cantidad letras: <b>${cantidad}</b></p>
+      <p>Precio por letra: <b>$${precioLetra}</b></p>
+    </div>
+    <div style="margin-top:15px;padding:10px;background:#f4f6f8;text-align:center;border-radius:8px;">
+      <p style="margin:0;font-size:13px;color:#555;">TOTAL ESTIMADO</p>
+      <h1 style="margin:5px 0;">$${total}</h1>
+    </div>
+    <p style="font-size:11px;color:#777;text-align:center;margin-top:15px;">
+      Presupuesto estimativo de fabricación. No incluye instalación ni materiales.<br>
+      <b>Términos y condiciones:</b> El material se retira en su totalidad por un único punto y una sola vez. Seña del 50%. Deben enviar el archivo. No incluye material ni instalación. Presupuesto válido solo si se cumplen las condiciones.
+    </p></div>`;
+
+    document.getElementById("resultado").innerHTML = presupuestoHTML;
+    document.getElementById("resultado").scrollIntoView({behavior:"smooth", block:"center"});
+
+    let historial = JSON.parse(localStorage.getItem("historial")||"[]");
+    historial.push({empresa: state.empresa, contacto: state.contacto, tamano: state.tamano, material: state.material, texto: state.texto, fecha, total});
+    if(historial.length>15) historial = historial.slice(-15);
+    localStorage.setItem("historial", JSON.stringify(historial));
+    loadHistorial();
   }
 
-  const desperdicio = parseFloat(document.getElementById("desperdicio").value||0)/100;
-  const ledsConDesperdicio = Math.ceil(totalLEDs * (1 + desperdicio));
-  const m2 = (totalLEDs * 0.015).toFixed(2);
-
-  resultadoPro.innerHTML = `
-    LED estimados: ${ledsConDesperdicio} <br>
-    Total módulos sin desperdicio: ${totalLEDs} <br>
-    Área aproximada: ${m2} m² <br>
-    Desperdicio aplicado: ${(desperdicio*100).toFixed(1)}%
-  `;
-}
-
-document.getElementById("descargarCompletoBtn").onclick = function() {
-  const printDiv = document.getElementById("print");
-  const proDiv = document.getElementById("resultadoPro");
-
-  if (!printDiv) {
-    alert("Primero genera el presupuesto de fabricación.");
-    return;
-  }
-  if (!proDiv || proDiv.innerHTML.trim() === "") {
-    alert("Primero realiza el cálculo de materiales.");
-    return;
+  function togglePro(){
+    const m=document.getElementById("moduloPro");
+    if(m.style.display==="block"){ m.style.display="none"; }
+    else { m.style.display="block"; m.scrollIntoView({behavior:"smooth", block:"start"}); }
   }
 
-  const tempDiv = document.createElement("div");
-  tempDiv.style.background = "#fff";
-  tempDiv.style.padding = "15px";
-  tempDiv.style.position = "absolute";
-  tempDiv.style.left = "-9999px"; // fuera de pantalla
-  tempDiv.appendChild(printDiv.cloneNode(true));
-  tempDiv.appendChild(proDiv.cloneNode(true));
-  document.body.appendChild(tempDiv);
+  function calcularPro(){
+    const resultadoPro = document.getElementById("resultadoPro");
+    const texto = state.texto || "";
+    const tamano = state.tamano || 0;
+    if(!texto || !tamano) return;
 
-  html2canvas(tempDiv, { scale: 2 }).then(canvas => {
-    const a = document.createElement("a");
-    a.download = "presupuesto_completo.png";
-    a.href = canvas.toDataURL("image/png");
-    a.click();
-    document.body.removeChild(tempDiv);
-  }).catch(err => {
-    console.error("Error al
+    const distanciaModulo = 5; 
+    let totalLEDs = 0;
+    const letrasLongitud = { "A": tamano*2, "B": tamano*2, "C": tamano*1.5, "D": tamano*2, "E": tamano*1.5, "F": tamano*1.5,
+      "G": tamano*1.5, "H": tamano*2, "I": tamano, "J": tamano*1.5, "K": tamano*2, "L": tamano,
+      "M": tamano*5, "N": tamano*3, "O": tamano*3, "P": tamano*2, "Q": tamano*3, "R": tamano*2,
+      "S": tamano*2, "T": tamano*1.5, "U": tamano*2, "V": tamano*2, "W": tamano*3, "X": tamano*2,
+      "Y": tamano*2, "Z": tamano*2 };
+
+    for(let l of texto.toUpperCase()){
+      let longitud = letrasLongitud[l] || tamano;
+      let ledsLetra = Math.ceil(longitud / distanciaModulo);
+      totalLEDs += ledsLetra;
+    }
+
+    const desperdicio = parseFloat(document.getElementById("desperdicio").value||0)/100;
+    const ledsConDesperdicio = Math.ceil(totalLEDs * (1 + desperdicio));
+    const m2 = (totalLEDs * 0.015).toFixed(2);
+
+    resultadoPro.innerHTML = `
+      LED estimados: ${ledsConDesperdicio} <br>
+      Total módulos sin desperdicio: ${totalLEDs} <br>
+      Área aproximada: ${m2} m² <br>
+      Desperdicio aplicado: ${(desperdicio*100).toFixed(1)}%
+    `;
+  }
+
+  document.getElementById("descargarCompletoBtn").onclick = function() {
+    const printDiv = document.getElementById("print");
+    const proDiv = document.getElementById("resultadoPro");
+
+    if (!printDiv) { alert("Primero genera el presupuesto de fabricación."); return; }
+    if (!proDiv || proDiv.innerHTML.trim() === "") { alert("Primero realiza el cálculo de materiales."); return; }
+
+    const tempDiv = document.createElement("div");
+    tempDiv.style.background = "#fff";
+    temp
