@@ -74,7 +74,6 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
     <div style="display:flex; gap:10px; flex-direction:column;">
       <button id="generarBtn">Generar presupuesto</button>
-      <button id="descargarBtn" onclick="descargar()">Descargar presupuesto</button>
     </div>
 
     <div id="resultado"></div>
@@ -233,28 +232,7 @@ function generar(){
   loadHistorial();
 }
 
-function descargar(){
-  const el = document.getElementById("print");
-  if(!el){ alert("No hay presupuesto generado"); return; }
-  html2canvas(el,{scale:2}).then(canvas=>{
-    const a=document.createElement("a");
-    a.download="presupuesto.png";
-    a.href=canvas.toDataURL();
-    a.click();
-  });
-}
-
-// Toggle módulo Pro y hacer scroll hacia él
-function togglePro(){
-  const m=document.getElementById("moduloPro");
-  if(m.style.display==="block"){ m.style.display="none"; }
-  else { 
-    m.style.display="block"; 
-    m.scrollIntoView({behavior:"smooth", block:"start"});
-  }
-}
-
-// ------------------- NUEVA FUNCIÓN calcularPro() -------------------
+// ------------------- NUEVA FUNCIÓN calcularPro() CON BOTÓN DE DESCARGA -------------------
 function calcularPro(){
   const texto = state.texto || "";
   const tamano = state.tamano || 0; // altura en cm
@@ -282,12 +260,36 @@ function calcularPro(){
   const ledsConDesperdicio = Math.ceil(totalLEDs * (1 + desperdicio));
 
   const m2 = (totalLEDs * 0.015).toFixed(2); // referencia área m²
+
+  // Mostrar resultados con botón para descargar todo
   resultadoPro.innerHTML = `
     LED estimados: ${ledsConDesperdicio} <br>
     Total módulos sin desperdicio: ${totalLEDs} <br>
     Área aproximada: ${m2} m² <br>
-    Desperdicio aplicado: ${(desperdicio*100).toFixed(1)}%
+    Desperdicio aplicado: ${(desperdicio*100).toFixed(1)}% <br><br>
+    <button onclick="descargarPresupuestoCompleto()">Descargar presupuesto</button>
   `;
+}
+
+// Función para descargar todo completo (presupuesto + cálculo de materiales)
+function descargarPresupuestoCompleto(){
+  const presupuestoEl = document.getElementById("print");
+  const calculoEl = document.getElementById("resultadoPro");
+  if(!presupuestoEl){ alert("Genera primero el presupuesto"); return; }
+
+  const container = document.createElement("div");
+  container.style.background="#fff";
+  container.style.padding="15px";
+  container.style.fontFamily="Arial";
+  container.appendChild(presupuestoEl.cloneNode(true));
+  container.appendChild(calculoEl.cloneNode(true));
+
+  html2canvas(container,{scale:2}).then(canvas=>{
+    const a=document.createElement("a");
+    a.download="presupuesto_completo.png";
+    a.href=canvas.toDataURL();
+    a.click();
+  });
 }
 // ------------------------------------------------------------------
 
