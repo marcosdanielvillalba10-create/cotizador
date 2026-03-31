@@ -8,6 +8,23 @@
 
 * { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
 body { margin:0; padding:0; background:#f9f9fb; color:#333; }
+
+/* LOGIN */
+#loginScreen {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+#loginScreen img { width:240px; margin-bottom:20px; }
+#loginScreen input { width:200px; padding:10px; margin-bottom:10px; border-radius:6px; border:1px solid #ccc; }
+#loginScreen button { width:200px; padding:10px; border:none; border-radius:6px; background:#007bff; color:#fff; cursor:pointer; }
+#loginScreen button:hover { background:#0056b3; }
+
+/* CONTENIDO PRINCIPAL */
+#mainContent { display:none; }
+
 .contenedor { display:flex; flex-direction:row; max-width:1400px; margin:auto; padding:20px; gap:20px; align-items:flex-start; }
 .main { flex:1; background:#fff; padding:20px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05); }
 .logo { display:block; margin:0 auto 20px auto; width:240px; }
@@ -42,6 +59,16 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 </style>
 </head>
 <body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <img src="logo.png">
+  <input type="password" id="loginPassword" placeholder="Contraseña">
+  <button onclick="login()">Ingresar</button>
+</div>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div id="mainContent">
 
 <div class="contenedor">
 
@@ -133,6 +160,8 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 </div>
 
+</div> <!-- mainContent end -->
+
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <h3>Términos y condiciones</h3>
@@ -150,6 +179,20 @@ button { cursor:pointer; border:none; border-radius:6px; padding:12px; margin-to
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
+// LOGIN
+function login() {
+  const pw = document.getElementById("loginPassword").value;
+  if(pw === "1234") {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("mainContent").style.display = "block";
+  } else {
+    alert("Contraseña incorrecta");
+  }
+}
+
+// ======= RESTO DEL CÓDIGO ORIGINAL =======
+
+// Estado
 const state = { empresa:"", contacto:"", tamano:"", material:"", texto:"" };
 
 document.querySelectorAll("input,select").forEach(el=>{
@@ -298,7 +341,7 @@ document.getElementById("descargarCompletoBtn").onclick = function() {
   tempDiv.style.background = "#fff";
   tempDiv.style.padding = "15px";
   tempDiv.style.position = "absolute";
-  tempDiv.style.left = "-9999px"; // fuera de pantalla
+  tempDiv.style.left = "-9999px";
   tempDiv.appendChild(printDiv.cloneNode(true));
   tempDiv.appendChild(proDiv.cloneNode(true));
   document.body.appendChild(tempDiv);
@@ -309,36 +352,4 @@ document.getElementById("descargarCompletoBtn").onclick = function() {
     a.href = canvas.toDataURL("image/png");
     a.click();
     document.body.removeChild(tempDiv);
-  }).catch(err => {
-    console.error("Error al generar imagen:", err);
-    alert("Ocurrió un error al generar la imagen.");
-  });
-};
-
-function loadHistorial(){
-  const container=document.getElementById("hist-items");
-  container.innerHTML="";
-  let historial=JSON.parse(localStorage.getItem("historial")||"[]");
-  historial.slice(-15).reverse().forEach(item=>{
-    const div=document.createElement("div");
-    div.className="hist-item";
-    div.innerHTML=`<b>${item.texto}</b><br>${item.empresa} - ${item.contacto}<br>${item.fecha} - $${item.total}`;
-    div.onclick=()=>{
-      state.empresa=item.empresa;
-      state.contacto=item.contacto;
-      state.tamano=item.tamano;
-      state.material=item.material;
-      state.texto=item.texto;
-      generar();
-    };
-    container.appendChild(div);
-  });
-}
-
-loadHistorial();
-
-function abrirTerminos(){ document.getElementById("modalOverlay").style.display="flex"; }
-function cerrarTerminos(){ document.getElementById("modalOverlay").style.display="none"; }
-</script>
-</body>
-</html>
+  }).catch
